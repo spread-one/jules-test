@@ -10,8 +10,28 @@
     <div class="container">
         <h1>커뮤니티 게시판</h1>
 
-        <div id="create-form-container" class="form-container">
-            <h2>새 글 작성</h2>
+        <!-- Auth Section -->
+        <div id="auth-container">
+            <div id="login-form-container" class="form-container">
+                <h2>로그인</h2>
+                <form id="login-form">
+                    <input type="text" id="login-userId" placeholder="아이디" required>
+                    <input type="password" id="login-password" placeholder="비밀번호" required>
+                    <button type="submit">로그인</button>
+                </form>
+                <p>계정이 없으신가요? <a href="/signup.html">회원가입</a></p>
+            </div>
+        </div>
+
+        <!-- Main App Content (hidden by default) -->
+        <div id="app-container" style="display: none;">
+            <div id="user-info" class="user-info">
+                <span id="user-welcome-message"></span>
+                <button id="logout-button">로그아웃</button>
+            </div>
+
+            <div id="create-form-container" class="form-container">
+                <h2>새 글 작성</h2>
             <form id="create-post-form">
                 <input type="text" id="create-title" placeholder="제목" required>
                 <textarea id="create-content" placeholder="내용" required></textarea>
