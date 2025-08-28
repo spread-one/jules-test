@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>커뮤니티 게시판</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>커뮤니티 게시판</h1>
+
+        <div id="create-form-container" class="form-container">
+            <h2>새 글 작성</h2>
+            <form id="create-post-form">
+                <input type="text" id="create-title" placeholder="제목" required>
+                <textarea id="create-content" placeholder="내용" required></textarea>
+                <button type="submit">등록</button>
+            </form>
+        </div>
+
+        <div id="edit-form-container" class="form-container" style="display:none;">
+            <h2>글 수정</h2>
+            <form id="edit-post-form">
+                <input type="hidden" id="edit-post-id">
+                <input type="text" id="edit-title" placeholder="제목" required>
+                <textarea id="edit-content" placeholder="내용" required></textarea>
+                <button type="submit">수정 완료</button>
+                <button type="button" id="cancel-edit">취소</button>
+            </form>
+        </div>
+
+        <div class="posts-container">
+            <h2>게시글 목록</h2>
+            <ul id="posts-list">
+                <!-- Posts will be dynamically inserted here by main.js -->
+            </ul>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
