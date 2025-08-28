@@ -28,7 +28,7 @@ app.post('/api/posts', (req, res) => {
     if (!title || !content) {
         return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
     }
-    const newPost = { id: nextId++, title, content };
+    const newPost = { id: nextId++, title, content, comments: [] };
     posts.push(newPost);
     res.status(201).json(newPost);
 });
