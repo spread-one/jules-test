@@ -7,8 +7,8 @@ app.use(express.json());
 
 // In-memory data store
 let posts = [
-    { id: 1, title: '첫 번째 게시물', content: '이것은 첫 번째 게시물입니다.' },
-    { id: 2, title: '두 번째 게시물', content: '이것은 두 번째 게시물입니다.' }
+    { id: 1, title: '첫 번째 게시물', content: '이것은 1번째 게시물입니다.' },
+    { id: 2, title: '두 번째 게시물', content: '이것은 2번째 게시물입니다.' }
 ];
 let nextId = 3;
 
