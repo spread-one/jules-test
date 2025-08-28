@@ -45,7 +45,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="comments-section">
                     <h4>댓글</h4>
                     <ul class="comments-list">
-                        ${post.comments.map(comment => `<li>${escapeHTML(comment.content)}</li>`).join('')}
+                        ${post.comments.map(comment => `
+                            <li data-comment-id="${comment.id}">
+                                <span>${escapeHTML(comment.content)}</span>
+                                <button class="comment-delete-btn">삭제</button>
+                            </li>
+                        `).join('')}
                     </ul>
                     <form class="comment-form">
                         <input type="text" class="comment-input" placeholder="댓글을 입력하세요..." required>
@@ -103,16 +108,26 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle Clicks for Edit/Delete and Form Submissions for Comments
     postsList.addEventListener('click', (e) => {
         const target = e.target;
-        const li = target.closest('li');
-        if (!li) return;
-        const postId = li.dataset.id;
+        const postLi = target.closest('li[data-id]');
+        if (!postLi) return;
+        const postId = postLi.dataset.id;
 
+        // Handle Post Delete
         if (target.classList.contains('delete-btn')) {
             handleDelete(postId);
-        } else if (target.classList.contains('edit-btn')) {
-            const title = li.querySelector('h3').textContent;
-            const content = li.querySelector('p').textContent;
+        }
+        // Handle Post Edit
+        else if (target.classList.contains('edit-btn')) {
+            const title = postLi.querySelector('h3').textContent;
+            const content = postLi.querySelector('p').textContent;
             showEditForm(postId, title, content);
+        }
+        // Handle Comment Delete
+        else if (target.classList.contains('comment-delete-btn')) {
+            const commentLi = target.closest('li[data-comment-id]');
+            if (!commentLi) return;
+            const commentId = commentLi.dataset.commentId;
+            handleCommentDelete(postId, commentId);
         }
     });
 
@@ -162,6 +177,23 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${apiUrl}/${postId}`, { method: 'DELETE' });
             if (!response.ok) {
                 throw new Error('게시물 삭제에 실패했습니다.');
+            }
+            fetchPosts();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
+
+    const handleCommentDelete = async (postId, commentId) => {
+        if (!confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/${postId}/comments/${commentId}`, { method: 'DELETE' });
+            if (!response.ok) {
+                throw new Error('댓글 삭제에 실패했습니다.');
             }
             fetchPosts();
         } catch (error) {
