@@ -40,29 +40,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.setAttribute('data-id', post.id);
 
+            const postDate = new Date(post.createdAt);
+            const postDateString = formatDate(postDate);
+            const postUpdated = post.createdAt !== post.updatedAt;
+            const postUpdatedDateString = postUpdated ? `(수정됨: ${formatDate(new Date(post.updatedAt))})` : '';
+
             // Comments HTML
             const commentsHtml = `
                 <div class="comments-section">
                     <h4>댓글</h4>
                     <ul class="comments-list">
-                        ${post.comments.map(comment => `
-                            <li data-comment-id="${comment.id}">
-                                <div class="comment-view">
-                                    <span>${escapeHTML(comment.content)}</span>
-                                    <div class="comment-actions">
-                                        <button class="comment-edit-btn">수정</button>
-                                        <button class="comment-delete-btn">삭제</button>
+                        ${post.comments.map(comment => {
+                            const commentDate = new Date(comment.createdAt);
+                            const commentDateString = formatDate(commentDate);
+                            const commentUpdated = comment.createdAt !== comment.updatedAt;
+                            const commentUpdatedString = commentUpdated ? `(수정됨: ${formatDate(new Date(comment.updatedAt))})` : '';
+                            return `
+                                <li data-comment-id="${comment.id}">
+                                    <div class="comment-view">
+                                        <div class="comment-content">
+                                            <span>${escapeHTML(comment.content)}</span>
+                                            <div class="comment-meta">
+                                                <span class="comment-date">${commentDateString} ${commentUpdatedString}</span>
+                                            </div>
+                                        </div>
+                                        <div class="comment-actions">
+                                            <button class="comment-edit-btn">수정</button>
+                                            <button class="comment-delete-btn">삭제</button>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="comment-edit-form" style="display: none;">
-                                    <input type="text" class="edit-comment-input" value="${escapeHTML(comment.content)}">
-                                    <div class="comment-actions">
-                                        <button class="comment-save-btn">저장</button>
-                                        <button class="comment-cancel-btn">취소</button>
+                                    <div class="comment-edit-form" style="display: none;">
+                                        <input type="text" class="edit-comment-input" value="${escapeHTML(comment.content)}">
+                                        <div class="comment-actions">
+                                            <button class="comment-save-btn">저장</button>
+                                            <button class="comment-cancel-btn">취소</button>
+                                        </div>
                                     </div>
-                                </div>
-                            </li>
-                        `).join('')}
+                                </li>
+                            `;
+                        }).join('')}
                     </ul>
                     <form class="comment-form">
                         <input type="text" class="comment-input" placeholder="댓글을 입력하세요..." required>
@@ -74,6 +90,9 @@ document.addEventListener('DOMContentLoaded', () => {
             li.innerHTML = `
                 <h3>${escapeHTML(post.title)}</h3>
                 <p>${escapeHTML(post.content)}</p>
+                <div class="post-meta">
+                    <span class="post-date">작성일: ${postDateString} ${postUpdatedDateString}</span>
+                </div>
                 <div class="post-actions">
                     <button class="edit-btn">수정</button>
                     <button class="delete-btn">삭제</button>
@@ -312,6 +331,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.appendChild(document.createTextNode(str));
         return div.innerHTML;
+    }
+
+    function formatDate(date) {
+        return date.toLocaleString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false,
+        });
     }
 
     // --- Initial Fetch ---

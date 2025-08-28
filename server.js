@@ -7,8 +7,24 @@ app.use(express.json());
 
 // In-memory data store
 let posts = [
-    { id: 1, title: '첫 번째 게시물', content: '이것은 1번째 게시물입니다.', comments: [{id: 1, content: '첫 번째 댓글입니다.'}] },
-    { id: 2, title: '두 번째 게시물', content: '이것은 2번째 게시물입니다.', comments: [] }
+    {
+        id: 1,
+        title: '첫 번째 게시물',
+        content: '이것은 1번째 게시물입니다.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        comments: [
+            {id: 1, content: '첫 번째 댓글입니다.', createdAt: new Date(), updatedAt: new Date()}
+        ]
+    },
+    {
+        id: 2,
+        title: '두 번째 게시물',
+        content: '이것은 2번째 게시물입니다.',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        comments: []
+    }
 ];
 let nextId = 3;
 let nextCommentId = 2;
@@ -17,7 +33,9 @@ let nextCommentId = 2;
 
 // GET all posts
 app.get('/api/posts', (req, res) => {
-    res.json(posts);
+    // Sort posts by creation date, newest first
+    const sortedPosts = posts.sort((a, b) => b.createdAt - a.createdAt);
+    res.json(sortedPosts);
 });
 
 // POST a new post
@@ -28,7 +46,15 @@ app.post('/api/posts', (req, res) => {
     if (!title || !content) {
         return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
     }
-    const newPost = { id: nextId++, title, content, comments: [] };
+    const now = new Date();
+    const newPost = {
+        id: nextId++,
+        title,
+        content,
+        comments: [],
+        createdAt: now,
+        updatedAt: now
+    };
     posts.push(newPost);
     res.status(201).json(newPost);
 });
@@ -47,7 +73,12 @@ app.put('/api/posts/:id', (req, res) => {
         return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
     }
 
-    posts[postIndex] = { ...posts[postIndex], title, content };
+    posts[postIndex] = {
+        ...posts[postIndex],
+        title,
+        content,
+        updatedAt: new Date()
+    };
     res.json(posts[postIndex]);
 });
 
@@ -78,8 +109,16 @@ app.post('/api/posts/:postId/comments', (req, res) => {
         return res.status(400).json({ message: '댓글 내용은 필수입니다.' });
     }
 
-    const newComment = { id: nextCommentId++, content };
+    const now = new Date();
+    const newComment = {
+        id: nextCommentId++,
+        content,
+        createdAt: now,
+        updatedAt: now
+    };
     post.comments.push(newComment);
+    // Sort comments by creation date, oldest first
+    post.comments.sort((a, b) => a.createdAt - b.createdAt);
     res.status(201).json(newComment);
 });
 
@@ -125,6 +164,7 @@ app.put('/api/posts/:postId/comments/:commentId', (req, res) => {
     }
 
     comment.content = content;
+    comment.updatedAt = new Date();
     res.json(comment);
 });
 
