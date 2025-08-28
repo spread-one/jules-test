@@ -111,3 +111,126 @@ button:hover {
 #posts-list li .post-actions .delete-btn:hover {
     background-color: #c82333;
 }
+
+/* Comments Section */
+.comments-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.comments-section h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.comments-list {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 15px;
+}
+
+.comments-list li {
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    border: 1px solid #eee;
+    font-size: 0.95em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.comment-form {
+    display: flex;
+    gap: 10px;
+}
+
+.comment-input {
+    flex-grow: 1;
+    border: 1px solid #ccc;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.comment-form button {
+    flex-shrink: 0;
+    padding: 8px 12px;
+    background-color: #555;
+}
+
+.comment-form button:hover {
+    background-color: #333;
+}
+
+.comment-delete-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    font-size: 0.8em;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.comment-delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Styles for Comment Editing */
+.comment-view, .comment-edit-form {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.comment-view span, .comment-edit-form .edit-comment-input {
+    flex-grow: 1;
+}
+
+.comment-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 5px;
+}
+
+.comment-actions button {
+    padding: 4px 8px;
+    font-size: 0.8em;
+    border-radius: 3px;
+    cursor: pointer;
+    border: none;
+    color: white;
+}
+
+.comment-edit-btn {
+    background-color: #28a745; /* Green */
+}
+.comment-edit-btn:hover {
+    background-color: #218838;
+}
+
+.comment-save-btn {
+    background-color: #007bff; /* Blue */
+}
+.comment-save-btn:hover {
+    background-color: #0056b3;
+}
+
+.comment-cancel-btn {
+    background-color: #6c757d; /* Gray */
+}
+.comment-cancel-btn:hover {
+    background-color: #5a6268;
+}
+
+.edit-comment-input {
+    width: 100%; /* Ensure it takes available space */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

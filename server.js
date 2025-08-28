@@ -7,10 +7,11 @@ app.use(express.json());
 
 // In-memory data store
 let posts = [
-    { id: 1, title: '첫 번째 게시물', content: '이것은 1번째 게시물입니다.' },
-    { id: 2, title: '두 번째 게시물', content: '이것은 2번째 게시물입니다.' }
+    { id: 1, title: '첫 번째 게시물', content: '이것은 1번째 게시물입니다.', comments: [{id: 1, content: '첫 번째 댓글입니다.'}] },
+    { id: 2, title: '두 번째 게시물', content: '이것은 2번째 게시물입니다.', comments: [] }
 ];
 let nextId = 3;
+let nextCommentId = 2;
 
 // --- API Endpoints ---
 
@@ -27,7 +28,7 @@ app.post('/api/posts', (req, res) => {
     if (!title || !content) {
         return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
     }
-    const newPost = { id: nextId++, title, content };
+    const newPost = { id: nextId++, title, content, comments: [] };
     posts.push(newPost);
     res.status(201).json(newPost);
 });
@@ -61,6 +62,70 @@ app.delete('/api/posts/:id', (req, res) => {
 
     posts.splice(postIndex, 1);
     res.status(204).send(); // No Content
+});
+
+// POST a new comment to a post
+app.post('/api/posts/:postId/comments', (req, res) => {
+    const postId = parseInt(req.params.postId, 10);
+    const { content } = req.body;
+    const post = posts.find(p => p.id === postId);
+
+    if (!post) {
+        return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+    }
+
+    if (!content) {
+        return res.status(400).json({ message: '댓글 내용은 필수입니다.' });
+    }
+
+    const newComment = { id: nextCommentId++, content };
+    post.comments.push(newComment);
+    res.status(201).json(newComment);
+});
+
+// DELETE a comment from a post
+app.delete('/api/posts/:postId/comments/:commentId', (req, res) => {
+    const postId = parseInt(req.params.postId, 10);
+    const commentId = parseInt(req.params.commentId, 10);
+    const post = posts.find(p => p.id === postId);
+
+    if (!post) {
+        return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+    }
+
+    const commentIndex = post.comments.findIndex(c => c.id === commentId);
+
+    if (commentIndex === -1) {
+        return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+    }
+
+    post.comments.splice(commentIndex, 1);
+    res.status(204).send(); // No Content
+});
+
+// PUT (update) a comment
+app.put('/api/posts/:postId/comments/:commentId', (req, res) => {
+    const postId = parseInt(req.params.postId, 10);
+    const commentId = parseInt(req.params.commentId, 10);
+    const { content } = req.body;
+    const post = posts.find(p => p.id === postId);
+
+    if (!post) {
+        return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+    }
+
+    const comment = post.comments.find(c => c.id === commentId);
+
+    if (!comment) {
+        return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+    }
+
+    if (!content) {
+        return res.status(400).json({ message: '댓글 내용은 필수입니다.' });
+    }
+
+    comment.content = content;
+    res.json(comment);
 });
 
 // Serve static files from the 'src' directory

@@ -39,6 +39,38 @@ document.addEventListener('DOMContentLoaded', () => {
         posts.forEach(post => {
             const li = document.createElement('li');
             li.setAttribute('data-id', post.id);
+
+            // Comments HTML
+            const commentsHtml = `
+                <div class="comments-section">
+                    <h4>댓글</h4>
+                    <ul class="comments-list">
+                        ${post.comments.map(comment => `
+                            <li data-comment-id="${comment.id}">
+                                <div class="comment-view">
+                                    <span>${escapeHTML(comment.content)}</span>
+                                    <div class="comment-actions">
+                                        <button class="comment-edit-btn">수정</button>
+                                        <button class="comment-delete-btn">삭제</button>
+                                    </div>
+                                </div>
+                                <div class="comment-edit-form" style="display: none;">
+                                    <input type="text" class="edit-comment-input" value="${escapeHTML(comment.content)}">
+                                    <div class="comment-actions">
+                                        <button class="comment-save-btn">저장</button>
+                                        <button class="comment-cancel-btn">취소</button>
+                                    </div>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <form class="comment-form">
+                        <input type="text" class="comment-input" placeholder="댓글을 입력하세요..." required>
+                        <button type="submit">등록</button>
+                    </form>
+                </div>
+            `;
+
             li.innerHTML = `
                 <h3>${escapeHTML(post.title)}</h3>
                 <p>${escapeHTML(post.content)}</p>
@@ -46,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="edit-btn">수정</button>
                     <button class="delete-btn">삭제</button>
                 </div>
+                ${commentsHtml}
             `;
             postsList.appendChild(li);
         });
@@ -84,19 +117,93 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle Edit and Delete clicks
+    // Handle Clicks for Edit/Delete and Form Submissions for Comments
     postsList.addEventListener('click', (e) => {
         const target = e.target;
+        const postLi = target.closest('li[data-id]');
+        if (!postLi) return;
+        const postId = postLi.dataset.id;
+
+        // Handle Post Delete
+        if (target.classList.contains('delete-btn')) {
+            handleDelete(postId);
+        }
+        // Handle Post Edit
+        else if (target.classList.contains('edit-btn')) {
+            const title = postLi.querySelector('h3').textContent;
+            const content = postLi.querySelector('p').textContent;
+            showEditForm(postId, title, content);
+        }
+        // Handle Comment Delete
+        else if (target.classList.contains('comment-delete-btn')) {
+            const commentLi = target.closest('li[data-comment-id]');
+            if (!commentLi) return;
+            const commentId = commentLi.dataset.commentId;
+            handleCommentDelete(postId, commentId);
+        }
+        // Handle Comment Edit
+        else if (target.classList.contains('comment-edit-btn')) {
+            const commentLi = target.closest('li[data-comment-id]');
+            if (!commentLi) return;
+            const viewDiv = commentLi.querySelector('.comment-view');
+            const editForm = commentLi.querySelector('.comment-edit-form');
+            viewDiv.style.display = 'none';
+            editForm.style.display = 'flex';
+        }
+        // Handle Comment Edit Cancel
+        else if (target.classList.contains('comment-cancel-btn')) {
+            const commentLi = target.closest('li[data-comment-id]');
+            if (!commentLi) return;
+            const viewDiv = commentLi.querySelector('.comment-view');
+            const editForm = commentLi.querySelector('.comment-edit-form');
+            viewDiv.style.display = 'flex';
+            editForm.style.display = 'none';
+            // Optionally reset input value, but fetching posts is simpler
+        }
+        // Handle Comment Edit Save
+        else if (target.classList.contains('comment-save-btn')) {
+            const commentLi = target.closest('li[data-comment-id]');
+            if (!commentLi) return;
+            const commentId = commentLi.dataset.commentId;
+            const newContent = commentLi.querySelector('.edit-comment-input').value.trim();
+            handleCommentUpdate(postId, commentId, newContent);
+        }
+    });
+
+    postsList.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const target = e.target;
+        if (!target.classList.contains('comment-form')) return;
+
         const li = target.closest('li');
         if (!li) return;
         const postId = li.dataset.id;
 
-        if (target.classList.contains('delete-btn')) {
-            handleDelete(postId);
-        } else if (target.classList.contains('edit-btn')) {
-            const title = li.querySelector('h3').textContent;
-            const content = li.querySelector('p').textContent;
-            showEditForm(postId, title, content);
+        const commentInput = target.querySelector('.comment-input');
+        const content = commentInput.value.trim();
+
+        if (!content) {
+            alert('댓글 내용을 입력해주세요.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/${postId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '댓글 작성에 실패했습니다.');
+            }
+
+            commentInput.value = '';
+            fetchPosts(); // Refresh all posts and comments
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
         }
     });
 
@@ -109,6 +216,45 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${apiUrl}/${postId}`, { method: 'DELETE' });
             if (!response.ok) {
                 throw new Error('게시물 삭제에 실패했습니다.');
+            }
+            fetchPosts();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
+
+    const handleCommentDelete = async (postId, commentId) => {
+        if (!confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/${postId}/comments/${commentId}`, { method: 'DELETE' });
+            if (!response.ok) {
+                throw new Error('댓글 삭제에 실패했습니다.');
+            }
+            fetchPosts();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
+
+    const handleCommentUpdate = async (postId, commentId, content) => {
+        if (!content) {
+            alert('댓글 내용이 비어있습니다.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/${postId}/comments/${commentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            });
+            if (!response.ok) {
+                throw new Error('댓글 수정에 실패했습니다.');
             }
             fetchPosts();
         } catch (error) {
