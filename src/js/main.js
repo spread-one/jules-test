@@ -39,6 +39,21 @@ document.addEventListener('DOMContentLoaded', () => {
         posts.forEach(post => {
             const li = document.createElement('li');
             li.setAttribute('data-id', post.id);
+
+            // Comments HTML
+            const commentsHtml = `
+                <div class="comments-section">
+                    <h4>댓글</h4>
+                    <ul class="comments-list">
+                        ${post.comments.map(comment => `<li>${escapeHTML(comment.content)}</li>`).join('')}
+                    </ul>
+                    <form class="comment-form">
+                        <input type="text" class="comment-input" placeholder="댓글을 입력하세요..." required>
+                        <button type="submit">등록</button>
+                    </form>
+                </div>
+            `;
+
             li.innerHTML = `
                 <h3>${escapeHTML(post.title)}</h3>
                 <p>${escapeHTML(post.content)}</p>
@@ -46,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="edit-btn">수정</button>
                     <button class="delete-btn">삭제</button>
                 </div>
+                ${commentsHtml}
             `;
             postsList.appendChild(li);
         });
@@ -84,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle Edit and Delete clicks
+    // Handle Clicks for Edit/Delete and Form Submissions for Comments
     postsList.addEventListener('click', (e) => {
         const target = e.target;
         const li = target.closest('li');
@@ -97,6 +113,43 @@ document.addEventListener('DOMContentLoaded', () => {
             const title = li.querySelector('h3').textContent;
             const content = li.querySelector('p').textContent;
             showEditForm(postId, title, content);
+        }
+    });
+
+    postsList.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const target = e.target;
+        if (!target.classList.contains('comment-form')) return;
+
+        const li = target.closest('li');
+        if (!li) return;
+        const postId = li.dataset.id;
+
+        const commentInput = target.querySelector('.comment-input');
+        const content = commentInput.value.trim();
+
+        if (!content) {
+            alert('댓글 내용을 입력해주세요.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/${postId}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '댓글 작성에 실패했습니다.');
+            }
+
+            commentInput.value = '';
+            fetchPosts(); // Refresh all posts and comments
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
         }
     });
 
