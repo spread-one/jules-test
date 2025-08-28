@@ -253,3 +253,31 @@ button:hover {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+/* Notification Area */
+.notification-area {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.75);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+}
+
+.notification-area.show {
+    opacity: 1;
+}
+
+.notification-area.error {
+    background-color: #dc3545; /* Red for errors */
+}
+
+.notification-area.success {
+    background-color: #28a745; /* Green for success */
+}

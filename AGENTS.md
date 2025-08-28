@@ -1,26 +1,47 @@
 ## Tech Stack
-- Frontend: React 18 + TypeScript
-- Backend: Express.js + Node.js
-- Database: MongoDB + Mongoose
-- Testing: Jest + React Testing Library
-- Styling: Tailwind CSS
+- **Frontend:** Vanilla JavaScript (ES6 Modules)
+- **Backend:** Express.js + Node.js
+- **Styling:** Plain CSS
+
+## Backend Details
+- **Authentication:** JWT (JSON Web Tokens) with `bcrypt` for password hashing.
+- **Database:** None. Uses a volatile in-memory object (`src/dataStore.js`) for storing data. All data is reset on server restart.
 
 ## Coding Standards
-- ESLint + Prettier 사용
-- 함수명은 camelCase
-- 컴포넌트명은 PascalCase
-- API 엔드포인트는 RESTful 방식
-- 모든 함수에 JSDoc 주석 필수
+- Use ESLint + Prettier (Note: not currently configured in `package.json`).
+- Function names should be camelCase.
+- API endpoints should follow RESTful conventions.
+- Add JSDoc comments to functions where the purpose is not immediately obvious.
 
 ## Project Structure
-- src/
-- components/     # 재사용 가능한 컴포넌트
-- pages/         # 페이지 컴포넌트
-- hooks/         # 커스텀 훅
-- api/           # API 유틸리티
-- utils/         # 헬퍼 함수
+- `src/`: Contains all source code.
+  - `css/`: CSS stylesheets.
+  - `js/`: Frontend JavaScript files, organized into modules.
+    - `main.js`: Main entry point for the frontend.
+    - `api.js`: Handles all communication with the backend API.
+    - `auth.js`: Manages user authentication state.
+    - `ui.js`: Controls all DOM manipulation and UI rendering.
+  - `middleware/`: Express middleware.
+  - `routes/`: Express route definitions.
+  - `index.html`: Main HTML file for the application.
+  - `server.js`: The Node.js server entry point.
+- `.env`: Contains environment variables (e.g., `JWT_SECRET`). **This file is not committed to git.**
+- `package.json`: Defines project metadata and dependencies.
 
-## Environment
-- Node.js 18+
-- MongoDB 6.0+
-- 포트: 3000 (프론트), 5000 (백엔드)
+## How to Run the Project
+1. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
+2. **Set Up Environment Variables:**
+   - Create a `.env` file in the project root.
+   - Add the following line:
+     ```
+     JWT_SECRET=your_super_secret_key_here
+     ```
+3. **Start the Server:**
+   ```bash
+   npm start
+   ```
+4. **Access the Application:**
+   - Open your web browser and go to `http://localhost:3000`.
