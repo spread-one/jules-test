@@ -178,3 +178,59 @@ button:hover {
 .comment-delete-btn:hover {
     background-color: #c82333;
 }
+
+/* Styles for Comment Editing */
+.comment-view, .comment-edit-form {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.comment-view span, .comment-edit-form .edit-comment-input {
+    flex-grow: 1;
+}
+
+.comment-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 5px;
+}
+
+.comment-actions button {
+    padding: 4px 8px;
+    font-size: 0.8em;
+    border-radius: 3px;
+    cursor: pointer;
+    border: none;
+    color: white;
+}
+
+.comment-edit-btn {
+    background-color: #28a745; /* Green */
+}
+.comment-edit-btn:hover {
+    background-color: #218838;
+}
+
+.comment-save-btn {
+    background-color: #007bff; /* Blue */
+}
+.comment-save-btn:hover {
+    background-color: #0056b3;
+}
+
+.comment-cancel-btn {
+    background-color: #6c757d; /* Gray */
+}
+.comment-cancel-btn:hover {
+    background-color: #5a6268;
+}
+
+.edit-comment-input {
+    width: 100%; /* Ensure it takes available space */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

@@ -103,6 +103,31 @@ app.delete('/api/posts/:postId/comments/:commentId', (req, res) => {
     res.status(204).send(); // No Content
 });
 
+// PUT (update) a comment
+app.put('/api/posts/:postId/comments/:commentId', (req, res) => {
+    const postId = parseInt(req.params.postId, 10);
+    const commentId = parseInt(req.params.commentId, 10);
+    const { content } = req.body;
+    const post = posts.find(p => p.id === postId);
+
+    if (!post) {
+        return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+    }
+
+    const comment = post.comments.find(c => c.id === commentId);
+
+    if (!comment) {
+        return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+    }
+
+    if (!content) {
+        return res.status(400).json({ message: '댓글 내용은 필수입니다.' });
+    }
+
+    comment.content = content;
+    res.json(comment);
+});
+
 // Serve static files from the 'src' directory
 app.use(express.static('src'));
 

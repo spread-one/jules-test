@@ -47,8 +47,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     <ul class="comments-list">
                         ${post.comments.map(comment => `
                             <li data-comment-id="${comment.id}">
-                                <span>${escapeHTML(comment.content)}</span>
-                                <button class="comment-delete-btn">삭제</button>
+                                <div class="comment-view">
+                                    <span>${escapeHTML(comment.content)}</span>
+                                    <div class="comment-actions">
+                                        <button class="comment-edit-btn">수정</button>
+                                        <button class="comment-delete-btn">삭제</button>
+                                    </div>
+                                </div>
+                                <div class="comment-edit-form" style="display: none;">
+                                    <input type="text" class="edit-comment-input" value="${escapeHTML(comment.content)}">
+                                    <div class="comment-actions">
+                                        <button class="comment-save-btn">저장</button>
+                                        <button class="comment-cancel-btn">취소</button>
+                                    </div>
+                                </div>
                             </li>
                         `).join('')}
                     </ul>
@@ -129,6 +141,33 @@ document.addEventListener('DOMContentLoaded', () => {
             const commentId = commentLi.dataset.commentId;
             handleCommentDelete(postId, commentId);
         }
+        // Handle Comment Edit
+        else if (target.classList.contains('comment-edit-btn')) {
+            const commentLi = target.closest('li[data-comment-id]');
+            if (!commentLi) return;
+            const viewDiv = commentLi.querySelector('.comment-view');
+            const editForm = commentLi.querySelector('.comment-edit-form');
+            viewDiv.style.display = 'none';
+            editForm.style.display = 'flex';
+        }
+        // Handle Comment Edit Cancel
+        else if (target.classList.contains('comment-cancel-btn')) {
+            const commentLi = target.closest('li[data-comment-id]');
+            if (!commentLi) return;
+            const viewDiv = commentLi.querySelector('.comment-view');
+            const editForm = commentLi.querySelector('.comment-edit-form');
+            viewDiv.style.display = 'flex';
+            editForm.style.display = 'none';
+            // Optionally reset input value, but fetching posts is simpler
+        }
+        // Handle Comment Edit Save
+        else if (target.classList.contains('comment-save-btn')) {
+            const commentLi = target.closest('li[data-comment-id]');
+            if (!commentLi) return;
+            const commentId = commentLi.dataset.commentId;
+            const newContent = commentLi.querySelector('.edit-comment-input').value.trim();
+            handleCommentUpdate(postId, commentId, newContent);
+        }
     });
 
     postsList.addEventListener('submit', async (e) => {
@@ -194,6 +233,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch(`${apiUrl}/${postId}/comments/${commentId}`, { method: 'DELETE' });
             if (!response.ok) {
                 throw new Error('댓글 삭제에 실패했습니다.');
+            }
+            fetchPosts();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
+
+    const handleCommentUpdate = async (postId, commentId, content) => {
+        if (!content) {
+            alert('댓글 내용이 비어있습니다.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${apiUrl}/${postId}/comments/${commentId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            });
+            if (!response.ok) {
+                throw new Error('댓글 수정에 실패했습니다.');
             }
             fetchPosts();
         } catch (error) {
