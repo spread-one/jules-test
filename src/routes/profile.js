@@ -58,4 +58,36 @@ router.put('/me', authMiddleware, async (req, res) => {
     res.json({ message: '프로필이 성공적으로 업데이트되었습니다.' });
 });
 
+// GET a specific user's public profile data
+router.get('/:userId', (req, res) => {
+    const userId = parseInt(req.params.userId, 10);
+    if (isNaN(userId)) {
+        return res.status(400).json({ message: '유효하지 않은 사용자 ID입니다.' });
+    }
+
+    const user = data.users.find(u => u.id === userId);
+    if (!user) {
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    const userPosts = data.posts.filter(p => p.authorId === userId);
+    const userComments = [];
+    data.posts.forEach(post => {
+        post.comments.forEach(comment => {
+            if (comment.authorId === userId) {
+                userComments.push({
+                    ...comment,
+                    postTitle: post.title
+                });
+            }
+        });
+    });
+
+    res.json({
+        name: user.name, // Return the user's name
+        posts: userPosts,
+        comments: userComments
+    });
+});
+
 module.exports = router;

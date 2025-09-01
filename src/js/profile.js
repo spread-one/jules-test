@@ -2,14 +2,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State ---
     let token = null;
     let currentUser = null;
+    let viewingUserId = null;
 
     // --- API URLs ---
-    const profileApiUrl = '/api/profile/me';
+    const profileApiBaseUrl = '/api/profile';
     const authApiUrl = '/api/auth';
 
     // --- DOM Elements ---
     const userWelcomeMessage = document.getElementById('user-welcome-message');
     const logoutButton = document.getElementById('logout-button');
+    const profileTitle = document.getElementById('profile-title');
     const myPostsList = document.getElementById('my-posts-list');
     const myCommentsList = document.getElementById('my-comments-list');
     const editProfileButton = document.getElementById('edit-profile-button');
@@ -32,32 +34,48 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkLoginStatus = async () => {
         const storedToken = localStorage.getItem('jwt_token');
         if (!storedToken) {
-            window.location.href = '/index.html';
-            return;
+            // If not logged in, they can't view their own profile.
+            // Redirect to login, as profile page without a target is the "my profile" page.
+            const params = new URLSearchParams(window.location.search);
+            if (!params.has('userId')) {
+                 window.location.href = '/index.html';
+                 return;
+            }
         }
         token = storedToken;
 
         try {
             const response = await fetchWithAuth(`${authApiUrl}/me`);
-            if (!response.ok) {
-                handleLogout();
-                return;
+            if (response.ok) {
+                currentUser = await response.json();
             }
-            currentUser = await response.json();
-            updateUI();
-            fetchProfileData();
+            // Continue execution even if not logged in, to allow viewing public profiles
+            initializeProfilePage();
         } catch (error) {
             console.error('Session check failed:', error);
-            handleLogout();
+            // Still try to load the page, might be a public profile
+            initializeProfilePage();
         }
+    };
+
+    // --- Page Initialization ---
+    const initializeProfilePage = () => {
+        const params = new URLSearchParams(window.location.search);
+        viewingUserId = params.get('userId');
+
+        updateWelcomeMessage(); // Update welcome message for logged-in user
+        fetchProfileData(); // Fetch profile data for the correct user
     };
 
     // --- UI Update ---
 
-    const updateUI = () => {
+    const updateWelcomeMessage = () => {
         if (currentUser) {
             let welcomeHTML = `${escapeHTML(currentUser.name)}(${escapeHTML(currentUser.userId)})님, 환영합니다!`;
             userWelcomeMessage.innerHTML = welcomeHTML;
+        } else {
+            // Handle case where user is not logged in but viewing a profile
+            userWelcomeMessage.innerHTML = '로그인되지 않았습니다.';
         }
     };
 
@@ -79,20 +97,52 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Profile Logic ---
 
     const fetchProfileData = async () => {
+        const isMyProfile = !viewingUserId || (currentUser && currentUser.id == viewingUserId);
+        let profileApiUrl;
+
+        if (isMyProfile) {
+            // This requires login, which is checked in checkLoginStatus
+            if (!currentUser) {
+                // This case should be handled by the redirect in checkLoginStatus, but as a fallback:
+                myPostsList.innerHTML = '<li>로그인이 필요합니다.</li>';
+                myCommentsList.innerHTML = '';
+                return;
+            }
+            profileApiUrl = `${profileApiBaseUrl}/me`;
+        } else {
+            profileApiUrl = `${profileApiBaseUrl}/${viewingUserId}`;
+        }
+
         try {
             const response = await fetchWithAuth(profileApiUrl);
             if (!response.ok) {
-                throw new Error('프로필 정보를 불러오는 데 실패했습니다.');
+                 const errorData = await response.json();
+                throw new Error(errorData.message || '프로필 정보를 불러오는 데 실패했습니다.');
             }
             const data = await response.json();
-            renderProfileData(data);
+            renderProfileData(data, isMyProfile);
         } catch (error) {
             console.error(error);
-            alert(error.message);
+            profileTitle.textContent = '프로필을 찾을 수 없습니다.';
+            myPostsList.innerHTML = `<li>${error.message}</li>`;
+            myCommentsList.innerHTML = '';
+            editProfileButton.style.display = 'none';
         }
     };
 
-    const renderProfileData = (data) => {
+    const renderProfileData = (data, isMyProfile) => {
+        // Update title and edit button based on whose profile it is
+        if (isMyProfile) {
+            profileTitle.textContent = '내 프로필';
+            document.title = '내 프로필';
+            editProfileButton.style.display = 'block';
+        } else {
+            const profileName = escapeHTML(data.name || '사용자');
+            profileTitle.textContent = `${profileName}의 프로필`;
+            document.title = `${profileName}의 프로필`;
+            editProfileButton.style.display = 'none';
+        }
+
         // Render posts
         myPostsList.innerHTML = '';
         if (data.posts.length === 0) {
@@ -164,7 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            const response = await fetchWithAuth(profileApiUrl, {
+            // The PUT endpoint is always /me for editing
+            const response = await fetchWithAuth(`${profileApiBaseUrl}/me`, {
                 method: 'PUT',
                 body: JSON.stringify({ currentPassword, newName, newPassword }),
             });
@@ -176,8 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             alert(data.message);
             hideModal();
-            // Refresh user info
-            checkLoginStatus();
+            // Refresh user info and profile data
+            await checkLoginStatus();
 
         } catch (error) {
             console.error(error);
