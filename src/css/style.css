@@ -390,3 +390,10 @@ button:hover {
 .comment-feedback .vote-buttons {
     gap: 5px;
 }
+
+.vote-buttons button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none; /* Override hover effect */
+    box-shadow: none; /* Override hover effect */
+}

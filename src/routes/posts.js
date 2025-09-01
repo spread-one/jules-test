@@ -96,6 +96,11 @@ router.post('/:id/vote', authMiddleware, (req, res) => {
         return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
     }
 
+    // Prevent user from voting on their own post
+    if (post.authorId === userId) {
+        return res.status(403).json({ message: '자신의 게시물에는 투표할 수 없습니다.' });
+    }
+
     if (voteType !== 'like' && voteType !== 'dislike') {
         return res.status(400).json({ message: '잘못된 투표 유형입니다.' });
     }

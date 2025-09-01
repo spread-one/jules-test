@@ -191,12 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
                             const userVoteComment = comment.votes ? comment.votes[currentUser.id] : undefined;
                             const commentLikeClass = userVoteComment === 'like' ? 'active' : '';
                             const commentDislikeClass = userVoteComment === 'dislike' ? 'active' : '';
+                            const isOwnComment = currentUser && currentUser.id === comment.authorId;
+                            const commentVoteDisabled = isOwnComment ? 'disabled' : '';
 
                             const commentVoteButtons = `
                                 <div class="vote-buttons">
-                                    <button class="like-btn ${commentLikeClass}" data-votetype="like" data-target="comment" data-comment-id="${comment.id}">👍</button>
+                                    <button class="like-btn ${commentLikeClass}" data-votetype="like" data-target="comment" data-comment-id="${comment.id}" ${commentVoteDisabled}>👍</button>
                                     <span class="like-count">${comment.likes || 0}</span>
-                                    <button class="dislike-btn ${commentDislikeClass}" data-votetype="dislike" data-target="comment" data-comment-id="${comment.id}">👎</button>
+                                    <button class="dislike-btn ${commentDislikeClass}" data-votetype="dislike" data-target="comment" data-comment-id="${comment.id}" ${commentVoteDisabled}>👎</button>
                                     <span class="dislike-count">${comment.dislikes || 0}</span>
                                 </div>`;
 
@@ -243,12 +245,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const userVotePost = post.votes ? post.votes[currentUser.id] : undefined;
             const postLikeClass = userVotePost === 'like' ? 'active' : '';
             const postDislikeClass = userVotePost === 'dislike' ? 'active' : '';
+            const isOwnPost = currentUser && currentUser.id === post.authorId;
+            const postVoteDisabled = isOwnPost ? 'disabled' : '';
 
             const postVoteButtons = `
                 <div class="vote-buttons">
-                     <button class="like-btn ${postLikeClass}" data-votetype="like" data-target="post">👍</button>
+                     <button class="like-btn ${postLikeClass}" data-votetype="like" data-target="post" ${postVoteDisabled}>👍</button>
                      <span class="like-count">${post.likes || 0}</span>
-                     <button class="dislike-btn ${postDislikeClass}" data-votetype="dislike" data-target="post">👎</button>
+                     <button class="dislike-btn ${postDislikeClass}" data-votetype="dislike" data-target="post" ${postVoteDisabled}>👎</button>
                      <span class="dislike-count">${post.dislikes || 0}</span>
                 </div>`;
 
