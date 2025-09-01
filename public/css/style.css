@@ -408,3 +408,15 @@ button:hover {
     transform: none; /* Override hover effect */
     box-shadow: none; /* Override hover effect */
 }
+
+.image-preview {
+    margin: 15px 0;
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}

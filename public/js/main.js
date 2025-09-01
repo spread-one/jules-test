@@ -285,10 +285,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const attachmentInput = document.getElementById('create-attachment');
+    const imagePreviewContainer = document.getElementById('image-preview');
+
     // --- Event Listeners ---
 
     loginForm.addEventListener('submit', handleLogin);
     logoutButton.addEventListener('click', handleLogout);
+
+    // Image Preview Listener
+    attachmentInput.addEventListener('change', () => {
+        const file = attachmentInput.files[0];
+        imagePreviewContainer.innerHTML = ''; // Clear previous preview
+
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                imagePreviewContainer.appendChild(img);
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
 
     // Create Post
     createForm.addEventListener('submit', async (e) => {
@@ -329,7 +350,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             createTitleInput.value = '';
             createContentInput.value = '';
-            document.getElementById('create-attachment').value = ''; // Clear file input
+            attachmentInput.value = ''; // Clear file input
+            imagePreviewContainer.innerHTML = ''; // Clear preview
             fetchPosts();
         } catch (error) {
             console.error(error);

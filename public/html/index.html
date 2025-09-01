@@ -39,7 +39,8 @@
             <form id="create-post-form">
                 <input type="text" id="create-title" placeholder="제목" required>
                 <textarea id="create-content" placeholder="내용" required></textarea>
-                <input type="file" id="create-attachment">
+                <input type="file" id="create-attachment" accept="image/*, .pdf, .doc, .docx, .txt">
+                <div id="image-preview" class="image-preview"></div>
                 <button type="submit">등록</button>
             </form>
         </div>
