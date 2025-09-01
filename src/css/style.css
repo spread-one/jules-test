@@ -325,3 +325,75 @@ button:hover {
     outline: none;
     border-color: var(--primary-color);
 }
+
+/* --- Vote Section --- */
+.post-feedback, .comment-feedback {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.vote-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vote-buttons button {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 1.2em; /* Bigger emoji */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.vote-buttons button:hover {
+    transform: scale(1.1);
+    box-shadow: none;
+}
+
+.vote-buttons button.active {
+    background-color: var(--primary-color);
+    color: var(--background-primary);
+    border-color: var(--primary-color);
+}
+
+.vote-buttons .like-btn.active {
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
+}
+
+.vote-buttons .dislike-btn.active {
+    background-color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+
+.vote-buttons span {
+    font-size: 1em;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+    color: var(--text-primary);
+}
+
+/* Adjustments for comment votes */
+.comment-feedback .vote-buttons button {
+    font-size: 1em;
+    padding: 4px 8px;
+}
+.comment-feedback .vote-buttons {
+    gap: 5px;
+}
+
+.vote-buttons button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+    transform: none; /* Override hover effect */
+    box-shadow: none; /* Override hover effect */
+}

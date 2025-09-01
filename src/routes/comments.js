@@ -29,7 +29,10 @@ router.post('/', authMiddleware, (req, res) => {
         authorName: req.user.name,
         content,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        likes: 0,
+        dislikes: 0,
+        votes: {}
     };
     post.comments.push(newComment);
     post.comments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
@@ -93,5 +96,49 @@ router.delete('/:commentId', authMiddleware, (req, res) => {
     post.comments.splice(commentIndex, 1);
     res.status(204).send(); // No Content
 });
+
+// POST a vote on a comment (protected)
+router.post('/:commentId/vote', authMiddleware, (req, res) => {
+    const postId = parseInt(req.params.postId, 10);
+    const commentId = parseInt(req.params.commentId, 10);
+    const { voteType } = req.body; // 'like' or 'dislike'
+    const userId = req.user.id;
+
+    const post = data.posts.find(p => p.id === postId);
+    if (!post) {
+        return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+    }
+
+    const comment = post.comments.find(c => c.id === commentId);
+    if (!comment) {
+        return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
+    }
+
+    // Prevent user from voting on their own comment
+    if (comment.authorId === userId) {
+        return res.status(403).json({ message: '자신의 댓글에는 투표할 수 없습니다.' });
+    }
+
+    if (voteType !== 'like' && voteType !== 'dislike') {
+        return res.status(400).json({ message: '잘못된 투표 유형입니다.' });
+    }
+
+    const existingVote = comment.votes[userId];
+
+    if (existingVote === voteType) {
+        // User is revoking their vote
+        delete comment.votes[userId];
+    } else {
+        // New vote or changing vote
+        comment.votes[userId] = voteType;
+    }
+
+    // Recalculate likes and dislikes
+    comment.likes = Object.values(comment.votes).filter(v => v === 'like').length;
+    comment.dislikes = Object.values(comment.votes).filter(v => v === 'dislike').length;
+
+    res.json(comment);
+});
+
 
 module.exports = router;
