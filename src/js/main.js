@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <li data-comment-id="${comment.id}" data-comment-author-id="${comment.authorId}">
                                     <div class="comment-view">
                                         <div class="comment-content">
-                                            <span class="comment-author">${escapeHTML(comment.authorName || '익명')}</span>
+                                            <span class="comment-author"><a href="/profile.html?userId=${comment.authorId}">${escapeHTML(comment.authorName || '익명')}</a></span>
                                             <span>${escapeHTML(comment.content)}</span>
                                             <div class="comment-meta">
                                                 <span class="comment-date">${commentDateString} ${commentUpdatedString}</span>
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${escapeHTML(post.title)}</h3>
                 <p>${escapeHTML(post.content)}</p>
                 <div class="post-meta">
-                    <span class="post-author">작성자: ${escapeHTML(post.authorName || '익명')}</span>
+                    <span class="post-author">작성자: <a href="/profile.html?userId=${post.authorId}">${escapeHTML(post.authorName || '익명')}</a></span>
                     <span class="post-date">작성일: ${postDateString} ${postUpdatedDateString}</span>
                 </div>
                 <div class="post-feedback">
