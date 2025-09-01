@@ -6,6 +6,7 @@ const port = 3000;
 // Import routes
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
+const profileRoutes = require('./routes/profile');
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -13,6 +14,7 @@ app.use(express.json());
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/profile', profileRoutes);
 
 
 // Serve static files from the 'src' directory

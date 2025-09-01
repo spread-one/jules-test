@@ -139,7 +139,7 @@ button:hover {
     font-weight: bold;
 }
 
-#logout-button {
+#logout-button, #profile-button {
     background: transparent;
     border: 1px solid var(--error-color);
     color: var(--error-color);
@@ -148,11 +148,22 @@ button:hover {
     font-weight: 400;
     text-transform: none;
     letter-spacing: 0;
+    text-decoration: none;
 }
-#logout-button:hover {
+#logout-button:hover, #profile-button:hover {
     background: var(--error-color);
     color: var(--background-primary);
     box-shadow: none;
+}
+
+#profile-button {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+#profile-button:hover {
+    background: var(--primary-color);
+    color: var(--background-primary);
 }
 
 .posts-container {
