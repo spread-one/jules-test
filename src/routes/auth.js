@@ -10,7 +10,7 @@ const JWT_SECRET = 'your_jwt_secret_key'; // In a real app, use an environment v
 // User Registration (Signup)
 router.post('/signup', async (req, res) => {
     try {
-        const { name, userId, password } = req.body;
+        const { name, userId, password, isAdmin, adminPasskey } = req.body;
 
         // Basic validation
         if (!name || !userId || !password) {
@@ -23,6 +23,17 @@ router.post('/signup', async (req, res) => {
             return res.status(409).json({ message: '이미 존재하는 아이디입니다.' });
         }
 
+        let role = 'user'; // Default role
+
+        // If creating an admin, validate the passkey
+        if (isAdmin) {
+            const ADMIN_PASSKEY = '12345678'; // In a real app, use an environment variable
+            if (adminPasskey !== ADMIN_PASSKEY) {
+                return res.status(401).json({ message: '관리자 패스키가 잘못되었습니다.' });
+            }
+            role = 'admin';
+        }
+
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
 
@@ -32,6 +43,7 @@ router.post('/signup', async (req, res) => {
             name,
             userId,
             password: hashedPassword,
+            role: role, // Add role to user object
         };
 
         data.users.push(newUser);
@@ -73,12 +85,13 @@ router.post('/login', async (req, res) => {
         const tokenPayload = {
             id: user.id,
             userId: user.userId,
-            name: user.name
+            name: user.name,
+            role: user.role || 'user', // Include role in JWT payload
         };
 
         const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
 
-        res.json({ token, userName: user.name, userId: user.id });
+        res.json({ token, userName: user.name, userId: user.id, role: user.role || 'user' });
 
     } catch (error) {
         console.error('Login Error:', error);

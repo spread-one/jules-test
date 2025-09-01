@@ -18,12 +18,76 @@
                 <input type="text" id="signup-name" placeholder="이름" required>
                 <input type="text" id="signup-userId" placeholder="아이디" required>
                 <input type="password" id="signup-password" placeholder="비밀번호" required>
+                <div class="form-control">
+                    <label for="signup-admin-checkbox">
+                        <input type="checkbox" id="signup-admin-checkbox">
+                        관리자 계정 생성
+                    </label>
+                </div>
                 <button type="submit">가입하기</button>
             </form>
             <p>이미 계정이 있으신가요? <a href="/">로그인하기</a></p>
         </div>
     </div>
 
+    <!-- Admin Passkey Modal -->
+    <div id="admin-passkey-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>관리자 패스키 입력</h2>
+            <p>관리자 계정을 생성하려면 패스키를 입력하세요.</p>
+            <input type="password" id="admin-passkey-input" placeholder="패스키" required>
+            <button id="admin-passkey-submit">확인</button>
+        </div>
+    </div>
+
     <script src="js/signup.js"></script>
+    <style>
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+            border-radius: 8px;
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .form-control {
+            text-align: left;
+            margin-bottom: 15px;
+        }
+        .form-control label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .form-control input[type="checkbox"] {
+            margin-right: 8px;
+        }
+    </style>
 </body>
 </html>
