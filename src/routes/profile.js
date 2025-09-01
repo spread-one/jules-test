@@ -1,8 +1,11 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const router = express.Router();
 const data = require('../dataStore');
 const authMiddleware = require('../middleware/authMiddleware');
+
+const JWT_SECRET = 'your_jwt_secret_key'; // In a real app, use an environment variable
 
 // GET current user's profile data (posts and comments)
 router.get('/me', authMiddleware, (req, res) => {
@@ -55,7 +58,20 @@ router.put('/me', authMiddleware, async (req, res) => {
         user.password = await bcrypt.hash(newPassword, 10);
     }
 
-    res.json({ message: '프로필이 성공적으로 업데이트되었습니다.' });
+    // Create a new JWT with the updated information
+    const tokenPayload = {
+        id: user.id,
+        userId: user.userId,
+        name: user.name, // The potentially new name
+        role: user.role || 'user',
+    };
+
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({
+        message: '프로필이 성공적으로 업데이트되었습니다.',
+        token: token // Send the new token to the client
+    });
 });
 
 // GET a specific user's public profile data

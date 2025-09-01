@@ -227,7 +227,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             alert(data.message);
             hideModal();
-            // Refresh user info and profile data
+
+            // If a new token was sent, update it in localStorage
+            if (data.token) {
+                localStorage.setItem('jwt_token', data.token);
+            }
+
+            // Refresh user info and profile data, which will now use the new token
             await checkLoginStatus();
 
         } catch (error) {
