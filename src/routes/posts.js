@@ -29,7 +29,10 @@ router.post('/', authMiddleware, (req, res) => {
         content,
         comments: [],
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        likes: 0,
+        dislikes: 0,
+        votes: {}
     };
     data.posts.push(newPost);
     res.status(201).json(newPost);

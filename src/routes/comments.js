@@ -29,7 +29,10 @@ router.post('/', authMiddleware, (req, res) => {
         authorName: req.user.name,
         content,
         createdAt: now,
-        updatedAt: now
+        updatedAt: now,
+        likes: 0,
+        dislikes: 0,
+        votes: {}
     };
     post.comments.push(newComment);
     post.comments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
