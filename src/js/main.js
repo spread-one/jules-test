@@ -105,7 +105,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Logged in
             authContainer.style.display = 'none';
             appContainer.style.display = 'block';
-            userWelcomeMessage.textContent = `${currentUser.name}(${currentUser.userId})님, 환영합니다!`;
+
+            let welcomeHTML = `${escapeHTML(currentUser.name)}(${escapeHTML(currentUser.userId)})님, 환영합니다!`;
+            if (currentUser.role === 'admin') {
+                welcomeHTML += ` <span class="admin-badge">(관리자)</span>`;
+            }
+            userWelcomeMessage.innerHTML = welcomeHTML;
+
             fetchPosts();
         } else {
             // Logged out
@@ -174,7 +180,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             const commentUpdatedString = commentUpdated ? `(수정됨: ${formatDate(new Date(comment.updatedAt))})` : '';
 
                             // Conditionally show comment actions
-                            const commentActions = currentUser && currentUser.id === comment.authorId ? `
+                            const canModifyComment = currentUser && (currentUser.id === comment.authorId || currentUser.role === 'admin');
+                            const commentActions = canModifyComment ? `
                                 <div class="comment-actions">
                                     <button class="comment-edit-btn">수정</button>
                                     <button class="comment-delete-btn">삭제</button>
@@ -209,7 +216,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
 
             // --- Post HTML ---
-            const postActions = currentUser && currentUser.id === post.authorId ? `
+            const canModifyPost = currentUser && (currentUser.id === post.authorId || currentUser.role === 'admin');
+            const postActions = canModifyPost ? `
                 <div class="post-actions">
                     <button class="edit-btn">수정</button>
                     <button class="delete-btn">삭제</button>

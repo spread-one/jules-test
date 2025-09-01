@@ -53,8 +53,8 @@ router.put('/:commentId', authMiddleware, (req, res) => {
         return res.status(404).json({ message: '댓글을 찾을 수 없습니다.' });
     }
 
-    // Authorization check
-    if (comment.authorId !== req.user.id) {
+    // Authorization check: must be the author or an admin
+    if (comment.authorId !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({ message: '수정할 권한이 없습니다.' });
     }
 
@@ -85,8 +85,8 @@ router.delete('/:commentId', authMiddleware, (req, res) => {
 
     const comment = post.comments[commentIndex];
 
-    // Authorization check
-    if (comment.authorId !== req.user.id) {
+    // Authorization check: must be the author or an admin
+    if (comment.authorId !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({ message: '삭제할 권한이 없습니다.' });
     }
 
