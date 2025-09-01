@@ -187,6 +187,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <button class="comment-delete-btn">삭제</button>
                                 </div>` : '';
 
+                            // Vote states for comment
+                            const userVoteComment = comment.votes ? comment.votes[currentUser.id] : undefined;
+                            const commentLikeClass = userVoteComment === 'like' ? 'active' : '';
+                            const commentDislikeClass = userVoteComment === 'dislike' ? 'active' : '';
+
+                            const commentVoteButtons = `
+                                <div class="vote-buttons">
+                                    <button class="like-btn ${commentLikeClass}" data-votetype="like" data-target="comment" data-comment-id="${comment.id}">👍</button>
+                                    <span class="like-count">${comment.likes || 0}</span>
+                                    <button class="dislike-btn ${commentDislikeClass}" data-votetype="dislike" data-target="comment" data-comment-id="${comment.id}">👎</button>
+                                    <span class="dislike-count">${comment.dislikes || 0}</span>
+                                </div>`;
+
                             return `
                                 <li data-comment-id="${comment.id}" data-comment-author-id="${comment.authorId}">
                                     <div class="comment-view">
@@ -197,7 +210,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                                 <span class="comment-date">${commentDateString} ${commentUpdatedString}</span>
                                             </div>
                                         </div>
-                                        ${commentActions}
+                                        <div class="comment-feedback">
+                                            ${commentVoteButtons}
+                                            ${commentActions}
+                                        </div>
                                     </div>
                                     <div class="comment-edit-form" style="display: none;">
                                         <input type="text" class="edit-comment-input" value="${escapeHTML(comment.content)}">
@@ -223,6 +239,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="delete-btn">삭제</button>
                 </div>` : '';
 
+            // Vote states for post
+            const userVotePost = post.votes ? post.votes[currentUser.id] : undefined;
+            const postLikeClass = userVotePost === 'like' ? 'active' : '';
+            const postDislikeClass = userVotePost === 'dislike' ? 'active' : '';
+
+            const postVoteButtons = `
+                <div class="vote-buttons">
+                     <button class="like-btn ${postLikeClass}" data-votetype="like" data-target="post">👍</button>
+                     <span class="like-count">${post.likes || 0}</span>
+                     <button class="dislike-btn ${postDislikeClass}" data-votetype="dislike" data-target="post">👎</button>
+                     <span class="dislike-count">${post.dislikes || 0}</span>
+                </div>`;
+
             li.innerHTML = `
                 <h3>${escapeHTML(post.title)}</h3>
                 <p>${escapeHTML(post.content)}</p>
@@ -230,7 +259,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="post-author">작성자: ${escapeHTML(post.authorName || '익명')}</span>
                     <span class="post-date">작성일: ${postDateString} ${postUpdatedDateString}</span>
                 </div>
-                ${postActions}
+                <div class="post-feedback">
+                    ${postVoteButtons}
+                    ${postActions}
+                </div>
                 ${commentsHtml}
             `;
             postsList.appendChild(li);
@@ -384,6 +416,43 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(errorData.message || '댓글 수정에 실패했습니다.');
                 }
                 fetchPosts();
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+            }
+        }
+        // Vote button click
+        else if (target.classList.contains('like-btn') || target.classList.contains('dislike-btn')) {
+            const voteType = target.dataset.votetype;
+            const targetType = target.dataset.target;
+            let url;
+
+            if (targetType === 'post') {
+                url = `${postsApiUrl}/${postId}/vote`;
+            } else if (targetType === 'comment') {
+                const commentId = target.dataset.commentId;
+                url = `${postsApiUrl}/${postId}/comments/${commentId}/vote`;
+            } else {
+                return; // Should not happen
+            }
+
+            try {
+                const response = await fetchWithAuth(url, {
+                    method: 'POST',
+                    body: JSON.stringify({ voteType }),
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    // Handle specific error for voting on own post/comment if desired
+                    throw new Error(errorData.message || '투표 처리에 실패했습니다.');
+                }
+
+                // The backend returns the updated post/comment. We can use this to
+                // update the UI selectively, but for simplicity and consistency with
+                // the rest of the app, we'll just refetch all posts.
+                fetchPosts();
+
             } catch (error) {
                 console.error(error);
                 alert(error.message);

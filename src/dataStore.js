@@ -8,6 +8,9 @@ let posts = [
         content: '이것은 1번째 게시물입니다.',
         createdAt: new Date(),
         updatedAt: new Date(),
+        likes: 0,
+        dislikes: 0,
+        votes: {}, // { userId: 'like' | 'dislike' }
         comments: [
             {
                 id: 1,
@@ -16,7 +19,10 @@ let posts = [
                 authorName: 'System',
                 content: '첫 번째 댓글입니다.',
                 createdAt: new Date(),
-                updatedAt: new Date()
+                updatedAt: new Date(),
+                likes: 0,
+                dislikes: 0,
+                votes: {}
             }
         ]
     },
@@ -28,6 +34,9 @@ let posts = [
         content: '이것은 2번째 게시물입니다.',
         createdAt: new Date(),
         updatedAt: new Date(),
+        likes: 0,
+        dislikes: 0,
+        votes: {},
         comments: []
     }
 ];

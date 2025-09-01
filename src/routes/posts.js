@@ -81,4 +81,37 @@ router.delete('/:id', authMiddleware, (req, res) => {
     res.status(204).send(); // No Content
 });
 
+// POST a vote on a post (protected)
+router.post('/:id/vote', authMiddleware, (req, res) => {
+    const postId = parseInt(req.params.id, 10);
+    const { voteType } = req.body; // 'like' or 'dislike'
+    const userId = req.user.id;
+
+    const post = data.posts.find(p => p.id === postId);
+
+    if (!post) {
+        return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
+    }
+
+    if (voteType !== 'like' && voteType !== 'dislike') {
+        return res.status(400).json({ message: '잘못된 투표 유형입니다.' });
+    }
+
+    const existingVote = post.votes[userId];
+
+    if (existingVote === voteType) {
+        // User is revoking their vote
+        delete post.votes[userId];
+    } else {
+        // New vote or changing vote
+        post.votes[userId] = voteType;
+    }
+
+    // Recalculate likes and dislikes
+    post.likes = Object.values(post.votes).filter(v => v === 'like').length;
+    post.dislikes = Object.values(post.votes).filter(v => v === 'dislike').length;
+
+    res.json(post);
+});
+
 module.exports = router;
