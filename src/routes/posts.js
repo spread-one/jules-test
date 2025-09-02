@@ -3,6 +3,20 @@ const router = express.Router();
 const data = require('../dataStore');
 const authMiddleware = require('../middleware/authMiddleware');
 const commentRoutes = require('./comments');
+const multer = require('multer');
+const path = require('path');
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname)); // Append extension
+    }
+});
+const upload = multer({ storage: storage });
+
 
 // Mount comment routes - This needs to be defined before routes with similar path patterns
 // All comment routes will also need to be protected, which we'll handle in comments.js
@@ -15,7 +29,7 @@ router.get('/', (req, res) => {
 });
 
 // POST a new post (protected)
-router.post('/', authMiddleware, (req, res) => {
+router.post('/', authMiddleware, upload.single('attachment'), (req, res) => {
     const { title, content } = req.body;
     if (!title || !content) {
         return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
@@ -27,6 +41,7 @@ router.post('/', authMiddleware, (req, res) => {
         authorName: req.user.name,
         title,
         content,
+        attachment: req.file ? `/uploads/${req.file.filename}` : null,
         comments: [],
         createdAt: now,
         updatedAt: now,

@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div class="container">
@@ -22,7 +22,7 @@
                     <input type="password" id="login-password" placeholder="비밀번호" required>
                     <button type="submit">로그인</button>
                 </form>
-                <p>계정이 없으신가요? <a href="/signup.html">회원가입</a></p>
+                <p>계정이 없으신가요? <a href="/html/signup.html">회원가입</a></p>
             </div>
         </div>
 
@@ -30,7 +30,7 @@
         <div id="app-container" style="display: none;">
             <div id="user-info" class="user-info">
                 <span id="user-welcome-message"></span>
-                <a href="/profile.html" id="profile-button">내 프로필 보기</a>
+                <a href="/html/profile.html" id="profile-button">내 프로필 보기</a>
                 <button id="logout-button">로그아웃</button>
             </div>
 
@@ -39,6 +39,8 @@
             <form id="create-post-form">
                 <input type="text" id="create-title" placeholder="제목" required>
                 <textarea id="create-content" placeholder="내용" required></textarea>
+                <input type="file" id="create-attachment" accept="image/*, .pdf, .doc, .docx, .txt">
+                <div id="image-preview" class="image-preview"></div>
                 <button type="submit">등록</button>
             </form>
         </div>
@@ -62,6 +64,6 @@
         </div>
     </div>
 
-    <script src="js/main.js"></script>
+    <script src="/js/main.js"></script>
 </body>
 </html>

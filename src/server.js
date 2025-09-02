@@ -17,13 +17,15 @@ app.use('/api/posts', postRoutes);
 app.use('/api/profile', profileRoutes);
 
 
-// Serve static files from the 'src' directory
-// This allows <link href="css/style.css"> in index.html to work correctly
-app.use(express.static(path.join(__dirname, '..', 'src')));
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Serve uploaded files
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Serve index.html for the root route
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'src', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'public', 'html', 'index.html'));
 });
 
 

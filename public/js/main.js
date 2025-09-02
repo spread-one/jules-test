@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <li data-comment-id="${comment.id}" data-comment-author-id="${comment.authorId}">
                                     <div class="comment-view">
                                         <div class="comment-content">
-                                            <span class="comment-author"><a href="/profile.html?userId=${comment.authorId}">${escapeHTML(comment.authorName || '익명')}</a></span>
+                                            <span class="comment-author"><a href="/html/profile.html?userId=${comment.authorId}">${escapeHTML(comment.authorName || '익명')}</a></span>
                                             <span>${escapeHTML(comment.content)}</span>
                                             <div class="comment-meta">
                                                 <span class="comment-date">${commentDateString} ${commentUpdatedString}</span>
@@ -256,11 +256,23 @@ document.addEventListener('DOMContentLoaded', () => {
                      <span class="dislike-count">${post.dislikes || 0}</span>
                 </div>`;
 
+            // --- Attachment HTML ---
+            let attachmentHtml = '';
+            if (post.attachment) {
+                const isImage = /\.(jpg|jpeg|png|gif)$/i.test(post.attachment);
+                if (isImage) {
+                    attachmentHtml = `<div class="post-attachment"><img src="${post.attachment}" alt="Attachment" style="max-width: 100%; height: auto;"></div>`;
+                } else {
+                    attachmentHtml = `<div class="post-attachment"><a href="${post.attachment}" target="_blank" download>첨부파일 다운로드</a></div>`;
+                }
+            }
+
             li.innerHTML = `
                 <h3>${escapeHTML(post.title)}</h3>
                 <p>${escapeHTML(post.content)}</p>
+                ${attachmentHtml}
                 <div class="post-meta">
-                    <span class="post-author">작성자: <a href="/profile.html?userId=${post.authorId}">${escapeHTML(post.authorName || '익명')}</a></span>
+                    <span class="post-author">작성자: <a href="/html/profile.html?userId=${post.authorId}">${escapeHTML(post.authorName || '익명')}</a></span>
                     <span class="post-date">작성일: ${postDateString} ${postUpdatedDateString}</span>
                 </div>
                 <div class="post-feedback">
@@ -273,33 +285,73 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    const attachmentInput = document.getElementById('create-attachment');
+    const imagePreviewContainer = document.getElementById('image-preview');
+
     // --- Event Listeners ---
 
     loginForm.addEventListener('submit', handleLogin);
     logoutButton.addEventListener('click', handleLogout);
+
+    // Image Preview Listener
+    attachmentInput.addEventListener('change', () => {
+        const file = attachmentInput.files[0];
+        imagePreviewContainer.innerHTML = ''; // Clear previous preview
+
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                imagePreviewContainer.appendChild(img);
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
 
     // Create Post
     createForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = createTitleInput.value.trim();
         const content = createContentInput.value.trim();
+        const attachmentFile = document.getElementById('create-attachment').files[0];
 
         if (!title || !content) {
             alert('제목과 내용을 모두 입력해주세요.');
             return;
         }
 
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('content', content);
+        if (attachmentFile) {
+            formData.append('attachment', attachmentFile);
+        }
+
         try {
-            const response = await fetchWithAuth(postsApiUrl, {
+            // We don't use fetchWithAuth here because we are sending FormData
+            // and need the browser to set the Content-Type header automatically.
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(postsApiUrl, {
                 method: 'POST',
-                body: JSON.stringify({ title, content }),
+                headers,
+                body: formData,
             });
+
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || '게시물 생성에 실패했습니다.');
             }
             createTitleInput.value = '';
             createContentInput.value = '';
+            attachmentInput.value = ''; // Clear file input
+            imagePreviewContainer.innerHTML = ''; // Clear preview
             fetchPosts();
         } catch (error) {
             console.error(error);
