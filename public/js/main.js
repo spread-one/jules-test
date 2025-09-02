@@ -110,8 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
             token = data.token;
             localStorage.setItem('jwt_token', token);
             await checkLoginStatus();
-            window.location.hash = '';
-            window.location.reload(); // Reload to apply state
+            handleRouting(); // Show the default view without reloading
         } catch (error) {
             console.error(error);
             alert(error.message);
