@@ -23,9 +23,16 @@ const upload = multer({ storage: storage });
 // All comment routes will also need to be protected, which we'll handle in comments.js
 router.use('/:postId/comments', commentRoutes);
 
-// GET all posts (publicly accessible)
+// GET all posts (publicly accessible, can be filtered by boardId)
 router.get('/', (req, res) => {
-    const postsWithRanks = data.posts.map(post => {
+    const { boardId } = req.query;
+    let postsToProcess = data.posts;
+
+    if (boardId) {
+        postsToProcess = data.posts.filter(p => p.boardId === parseInt(boardId, 10));
+    }
+
+    const postsWithRanks = postsToProcess.map(post => {
         const author = data.users.find(u => u.id === post.authorId);
         const authorRank = author ? (author.role === 'admin' ? 'Master' : getRank(author.score)) : 'N/A';
 
@@ -44,7 +51,7 @@ router.get('/', (req, res) => {
 
 // POST a new post (protected)
 router.post('/', authMiddleware, upload.single('attachment'), (req, res) => {
-    const { title, content } = req.body;
+    const { title, content, boardId } = req.body; // boardId 추가
     if (!title || !content) {
         return res.status(400).json({ message: '제목과 내용은 필수입니다.' });
     }
@@ -55,6 +62,7 @@ router.post('/', authMiddleware, upload.single('attachment'), (req, res) => {
         authorName: req.user.name,
         title,
         content,
+        boardId: parseInt(boardId, 10) || 1, // boardId 추가, 기본값 1
         attachment: req.file ? `/uploads/${req.file.filename}` : null,
         comments: [],
         createdAt: now,
@@ -112,8 +120,14 @@ router.delete('/:id', authMiddleware, (req, res) => {
         return res.status(404).json({ message: '게시물을 찾을 수 없습니다.' });
     }
 
-    // Authorization check: must be the author or an admin
-    if (data.posts[postIndex].authorId !== req.user.id && req.user.role !== 'admin') {
+    const post = data.posts[postIndex];
+    const board = data.boards.find(b => b.id === post.boardId);
+    const isAuthor = post.authorId === req.user.id;
+    const isAdmin = req.user.role === 'admin';
+    const isBoardCreator = board && board.createdBy === req.user.id;
+
+    // Authorization check: must be the author, an admin, or the board creator
+    if (!isAuthor && !isAdmin && !isBoardCreator) {
         return res.status(403).json({ message: '삭제할 권한이 없습니다.' });
     }
 

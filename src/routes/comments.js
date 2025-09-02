@@ -95,9 +95,13 @@ router.delete('/:commentId', authMiddleware, (req, res) => {
     }
 
     const comment = post.comments[commentIndex];
+    const board = data.boards.find(b => b.id === post.boardId);
+    const isAuthor = comment.authorId === req.user.id;
+    const isAdmin = req.user.role === 'admin';
+    const isBoardCreator = board && board.createdBy === req.user.id;
 
-    // Authorization check: must be the author or an admin
-    if (comment.authorId !== req.user.id && req.user.role !== 'admin') {
+    // Authorization check: must be the author, an admin, or the board creator
+    if (!isAuthor && !isAdmin && !isBoardCreator) {
         return res.status(403).json({ message: '삭제할 권한이 없습니다.' });
     }
 

@@ -8,6 +8,7 @@ const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const profileRoutes = require('./routes/profile');
 const adminRoutes = require('./routes/admin'); // Import admin routes
+const boardRoutes = require('./routes/boards');
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -17,6 +18,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/admin', adminRoutes); // Use admin routes
+app.use('/api/boards', boardRoutes);
 
 
 // Serve static files from the 'public' directory

@@ -35,6 +35,24 @@
                 <button id="logout-button">로그아웃</button>
             </div>
 
+            <div id="boards-container" class="boards-container">
+                <h2>게시판 목록</h2>
+                <ul id="boards-list">
+                    <!-- Board list will be dynamically inserted here -->
+                </ul>
+                <button id="show-create-board-form-button">게시판 추가</button>
+            </div>
+
+            <div id="create-board-form-container" class="form-container" style="display:none;">
+                <h2>새 게시판 생성</h2>
+                <form id="create-board-form">
+                    <input type="text" id="create-board-name" placeholder="게시판 이름" required>
+                    <textarea id="create-board-description" placeholder="게시판 설명"></textarea>
+                    <button type="submit">생성</button>
+                    <button type="button" id="cancel-create-board">취소</button>
+                </form>
+            </div>
+
             <div id="create-form-container" class="form-container">
                 <h2>새 글 작성</h2>
             <form id="create-post-form">
