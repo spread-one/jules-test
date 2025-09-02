@@ -101,13 +101,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI Update ---
 
+    const getRankIcon = (rank) => {
+        switch (rank) {
+            case 'Rookie': return '🔰';
+            case 'Beginner': return '🌱';
+            case 'Intermediate': return '🌿';
+            case 'Expert': return '🌳';
+            case 'Master': return '👑';
+            default: return '';
+        }
+    };
+
     const updateUI = () => {
         if (token && currentUser) {
             // Logged in
             authContainer.style.display = 'none';
             appContainer.style.display = 'block';
 
-            let welcomeHTML = `${escapeHTML(currentUser.name)}(${escapeHTML(currentUser.userId)})님, 환영합니다!`;
+            const rankIcon = getRankIcon(currentUser.rank);
+            let welcomeHTML = `${rankIcon} ${escapeHTML(currentUser.name)}(${escapeHTML(currentUser.userId)})님, 환영합니다!`;
             if (currentUser.role === 'admin') {
                 welcomeHTML += ` <span class="admin-badge">(관리자)</span>`;
                 adminButton.style.display = 'inline-block'; // Show admin button
@@ -207,11 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <span class="dislike-count">${comment.dislikes || 0}</span>
                                 </div>`;
 
+                            const commentAuthorRankIcon = getRankIcon(comment.authorRank);
+
                             return `
                                 <li data-comment-id="${comment.id}" data-comment-author-id="${comment.authorId}">
                                     <div class="comment-view">
                                         <div class="comment-content">
-                                            <span class="comment-author"><a href="/html/profile.html?userId=${comment.authorId}">${escapeHTML(comment.authorName || '익명')}</a></span>
+                                            <span class="comment-author"><a href="/html/profile.html?userId=${comment.authorId}">${commentAuthorRankIcon} ${escapeHTML(comment.authorName || '익명')}</a></span>
                                             <span>${escapeHTML(comment.content)}</span>
                                             <div class="comment-meta">
                                                 <span class="comment-date">${commentDateString} ${commentUpdatedString}</span>
@@ -272,12 +286,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
+            const postAuthorRankIcon = getRankIcon(post.authorRank);
+
             li.innerHTML = `
                 <h3>${escapeHTML(post.title)}</h3>
                 <p>${escapeHTML(post.content)}</p>
                 ${attachmentHtml}
                 <div class="post-meta">
-                    <span class="post-author">작성자: <a href="/html/profile.html?userId=${post.authorId}">${escapeHTML(post.authorName || '익명')}</a></span>
+                    <span class="post-author">작성자: <a href="/html/profile.html?userId=${post.authorId}">${postAuthorRankIcon} ${escapeHTML(post.authorName || '익명')}</a></span>
                     <span class="post-date">작성일: ${postDateString} ${postUpdatedDateString}</span>
                 </div>
                 <div class="post-feedback">

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const data = require('../dataStore');
+const { getRank } = require('../utils/rank');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const commentRoutes = require('./comments');
 const multer = require('multer');
@@ -24,7 +25,20 @@ router.use('/:postId/comments', commentRoutes);
 
 // GET all posts (publicly accessible)
 router.get('/', (req, res) => {
-    const sortedPosts = data.posts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const postsWithRanks = data.posts.map(post => {
+        const author = data.users.find(u => u.id === post.authorId);
+        const authorRank = author ? (author.role === 'admin' ? 'Master' : getRank(author.score)) : 'N/A';
+
+        const commentsWithRanks = post.comments.map(comment => {
+            const commentAuthor = data.users.find(u => u.id === comment.authorId);
+            const commentAuthorRank = commentAuthor ? (commentAuthor.role === 'admin' ? 'Master' : getRank(commentAuthor.score)) : 'N/A';
+            return { ...comment, authorRank: commentAuthorRank };
+        });
+
+        return { ...post, authorRank: authorRank, comments: commentsWithRanks };
+    });
+
+    const sortedPosts = postsWithRanks.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     res.json(sortedPosts);
 });
 
@@ -50,6 +64,14 @@ router.post('/', authMiddleware, upload.single('attachment'), (req, res) => {
         votes: {}
     };
     data.posts.push(newPost);
+
+    // Add points for creating a post
+    const author = data.users.find(u => u.id === req.user.id);
+    if (author) {
+        author.score += 10;
+        console.log(`User ${author.userId} score increased to ${author.score} for creating a post.`);
+    }
+
     res.status(201).json(newPost);
 });
 
@@ -120,14 +142,36 @@ router.post('/:id/vote', authMiddleware, (req, res) => {
         return res.status(400).json({ message: '잘못된 투표 유형입니다.' });
     }
 
+    const author = data.users.find(u => u.id === post.authorId);
+    if (!author) {
+        // This should not happen in a real app with foreign key constraints
+        return res.status(500).json({ message: '게시물 작성자를 찾을 수 없습니다.' });
+    }
+
     const existingVote = post.votes[userId];
+    let scoreChange = 0;
 
     if (existingVote === voteType) {
-        // User is revoking their vote
+        // Revoking a vote
         delete post.votes[userId];
-    } else {
-        // New vote or changing vote
+        if (voteType === 'like') scoreChange = -5;
+        if (voteType === 'dislike') scoreChange = 3;
+    } else if (existingVote) {
+        // Changing a vote
         post.votes[userId] = voteType;
+        if (voteType === 'like') scoreChange = 5 + 3; // +5 for new like, +3 for removing dislike
+        if (voteType === 'dislike') scoreChange = -3 - 5; // -3 for new dislike, -5 for removing like
+    } else {
+        // New vote
+        post.votes[userId] = voteType;
+        if (voteType === 'like') scoreChange = 5;
+        if (voteType === 'dislike') scoreChange = -3;
+    }
+
+    // Apply score change to the author
+    if (author) {
+        author.score += scoreChange;
+        console.log(`User ${author.userId} score changed by ${scoreChange} to ${author.score} for a vote.`);
     }
 
     // Recalculate likes and dislikes

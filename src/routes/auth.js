@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 const data = require('../dataStore');
 const { authMiddleware } = require('../middleware/authMiddleware');
+const { getRank } = require('../utils/rank');
 
 const JWT_SECRET = 'your_jwt_secret_key'; // In a real app, use an environment variable
 
@@ -44,6 +45,7 @@ router.post('/signup', async (req, res) => {
             userId,
             password: hashedPassword,
             role: role, // Add role to user object
+            score: 0, // Initialize score
             createdAt: new Date(),
             isSuspended: false,
         };
@@ -109,9 +111,23 @@ router.post('/login', async (req, res) => {
 // GET current user info (protected)
 // This route is used by the frontend to verify a token from localStorage
 router.get('/me', authMiddleware, (req, res) => {
-    // If the middleware passes, the user is authenticated.
-    // The user payload is in req.user.
-    res.json(req.user);
+    // The user payload from the token is in req.user.
+    // We should find the latest user info from our data store.
+    const user = data.users.find(u => u.id === req.user.id);
+    if (!user) {
+        // This could happen if the user was deleted after the token was issued.
+        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // Don't send the password hash
+    const { password, ...userWithoutPassword } = user;
+
+    const rank = user.role === 'admin' ? 'Master' : getRank(user.score);
+
+    res.json({
+        ...userWithoutPassword,
+        rank: rank,
+    });
 });
 
 
