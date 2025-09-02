@@ -24,3 +24,6 @@
 - Node.js 18+
 - MongoDB 6.0+
 - 포트: 3000 (프론트), 5000 (백엔드)
+
+## branch naming
+- feat/으로 시작
