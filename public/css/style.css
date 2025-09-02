@@ -70,7 +70,7 @@ h2 {
     color: var(--primary-color);
 }
 
-#create-post-form, #edit-post-form, #login-form, #signup-form {
+#create-post-form, #edit-post-form, #login-form, #signup-form, #create-board-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
