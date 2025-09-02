@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const data = require('../dataStore');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 const commentRoutes = require('./comments');
 const multer = require('multer');
 const path = require('path');
