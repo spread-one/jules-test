@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const boardTitleHeader = document.getElementById('board-title-header');
     const boardDescriptionDetail = document.getElementById('board-description-detail');
     const editDescBtnContainer = document.getElementById('edit-desc-btn-container');
+    const logoDiv = document.querySelector('.logo');
 
     // --- View Switching ---
     const switchView = (viewName) => {
@@ -131,7 +132,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const rankIcon = getRankIcon(currentUser.rank);
             let welcomeHTML = `${rankIcon} ${escapeHTML(currentUser.name)}님, 환영합니다!`;
             if (currentUser.role === 'admin') {
-                welcomeHTML += ` <span class="admin-badge">(관리자)</span>`;
                 adminButton.style.display = 'inline-block';
             } else {
                 adminButton.style.display = 'none';
@@ -143,6 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             authContainer.style.display = 'block';
             appContainer.style.display = 'none';
+            adminButton.style.display = 'none';
         }
     };
 
@@ -673,4 +674,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Initial Load ---
     checkLoginStatus();
+
+    logoDiv.addEventListener('click', () => {
+        window.location.href = '/';
+    });
 });
