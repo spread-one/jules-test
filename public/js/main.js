@@ -9,17 +9,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const postsApiUrl = '/api/posts';
     const authApiUrl = '/api/auth';
     const boardsApiUrl = '/api/boards';
+    const profileApiBaseUrl = '/api/profile';
+    const adminApiUrl = '/api/admin';
 
     // --- DOM Elements ---
+    // Views
     const authContainer = document.getElementById('auth-container');
     const appContainer = document.getElementById('app-container');
-    const loginForm = document.getElementById('login-form');
-    const loginUserIdInput = document.getElementById('login-userId');
-    const loginPasswordInput = document.getElementById('login-password');
-    const userInfo = document.getElementById('user-info');
+    const boardListView = document.getElementById('board-list-view');
+    const boardDetailView = document.getElementById('board-detail-view');
+    const profileView = document.getElementById('profile-view');
+    const adminView = document.getElementById('admin-view');
+
+    // Common Elements
     const userWelcomeMessage = document.getElementById('user-welcome-message');
     const logoutButton = document.getElementById('logout-button');
     const adminButton = document.getElementById('admin-button');
+    const profileButton = document.getElementById('profile-button');
+    const logoDiv = document.querySelector('.logo');
+
+    // Auth Elements
+    const loginForm = document.getElementById('login-form');
+    const loginUserIdInput = document.getElementById('login-userId');
+    const loginPasswordInput = document.getElementById('login-password');
+
+    // Board List Elements
     const boardsList = document.getElementById('boards-list');
     const showCreateBoardFormButton = document.getElementById('show-create-board-form-button');
     const createBoardFormContainer = document.getElementById('create-board-form-container');
@@ -27,34 +41,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const createBoardNameInput = document.getElementById('create-board-name');
     const createBoardDescriptionInput = document.getElementById('create-board-description');
     const cancelCreateBoardButton = document.getElementById('cancel-create-board');
+
+    // Board Detail Elements
+    const boardDetailHeader = document.getElementById('board-detail-header');
+    const boardTitleHeader = document.getElementById('board-title-header');
+    const boardDescriptionDetail = document.getElementById('board-description-detail');
+    const editDescBtnContainer = document.getElementById('edit-desc-btn-container');
     const postsList = document.getElementById('posts-list');
+    const createFormContainer = document.getElementById('create-form-container');
     const createForm = document.getElementById('create-post-form');
     const createTitleInput = document.getElementById('create-title');
     const createContentInput = document.getElementById('create-content');
     const attachmentInput = document.getElementById('create-attachment');
     const imagePreviewContainer = document.getElementById('image-preview');
     const editFormContainer = document.getElementById('edit-form-container');
-    const createFormContainer = document.getElementById('create-form-container');
     const editForm = document.getElementById('edit-post-form');
     const editIdInput = document.getElementById('edit-post-id');
     const editTitleInput = document.getElementById('edit-title');
     const editContentInput = document.getElementById('edit-content');
     const cancelEditBtn = document.getElementById('cancel-edit');
 
-    const boardListView = document.getElementById('board-list-view');
-    const boardDetailView = document.getElementById('board-detail-view');
-    const boardDetailHeader = document.getElementById('board-detail-header');
-    const boardTitleHeader = document.getElementById('board-title-header');
-    const boardDescriptionDetail = document.getElementById('board-description-detail');
-    const editDescBtnContainer = document.getElementById('edit-desc-btn-container');
-    const logoDiv = document.querySelector('.logo');
+    // Profile View Elements
+    const profileTitle = document.getElementById('profile-title');
+    const myPostsList = document.getElementById('my-posts-list');
+    const myCommentsList = document.getElementById('my-comments-list');
+    const editProfileButton = document.getElementById('edit-profile-button');
+    const editProfileModal = document.getElementById('edit-profile-modal');
+    const closeButton = document.querySelector('#profile-view .close-button');
+    const editProfileForm = document.getElementById('edit-profile-form');
+    const currentPasswordInput = document.getElementById('current-password');
+    const newNameInput = document.getElementById('new-name');
+    const newPasswordInput = document.getElementById('new-password');
+
+    // Admin View Elements
+    const usersTableBody = document.getElementById('users-table-body');
 
     // --- View Switching ---
-    const switchView = (viewName) => {
-        if (viewName === 'board-detail') {
-            boardDetailView.style.display = 'block';
-        } else {
-            boardDetailView.style.display = 'none';
+    const showAppView = (viewId) => {
+        // Hide all main content views
+        [boardDetailView, profileView, adminView].forEach(view => {
+            if (view) view.style.display = 'none';
+        });
+
+        // Show the requested view
+        const viewToShow = document.getElementById(viewId);
+        if (viewToShow) {
+            viewToShow.style.display = 'block';
         }
     };
 
@@ -88,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         token = null;
         currentUser = null;
         localStorage.removeItem('jwt_token');
-        updateUI();
+        window.location.href = '/'; // Redirect to home on logout
     };
 
     const checkLoginStatus = async () => {
@@ -138,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             userWelcomeMessage.innerHTML = welcomeHTML;
             boardListView.style.display = 'block'; // Show sidebar
-            switchView('none'); // Hide detail view initially
+            showAppView(null); // Hide all detail views initially
             fetchBoards();
         } else {
             authContainer.style.display = 'block';
@@ -228,6 +260,220 @@ document.addEventListener('DOMContentLoaded', () => {
             alert(error.message);
         }
     };
+
+    // --- Profile Logic ---
+    const showProfileView = (userId) => {
+        showAppView('profile-view');
+        fetchProfileData(userId);
+    };
+
+    const fetchProfileData = async (userId) => {
+        const isMyProfile = !userId || (currentUser && currentUser.id == userId);
+        let profileApiUrl;
+
+        if (isMyProfile) {
+            if (!currentUser) {
+                alert('로그인이 필요합니다.');
+                showAppView(null); // Hide profile view if not logged in
+                return;
+            }
+            profileApiUrl = `${profileApiBaseUrl}/me`;
+        } else {
+            profileApiUrl = `${profileApiBaseUrl}/${userId}`;
+        }
+
+        try {
+            const response = await fetchWithAuth(profileApiUrl);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '프로필 정보를 불러오는 데 실패했습니다.');
+            }
+            const data = await response.json();
+            renderProfileData(data, isMyProfile);
+        } catch (error) {
+            console.error(error);
+            profileTitle.textContent = '프로필을 찾을 수 없습니다.';
+            myPostsList.innerHTML = `<li>${error.message}</li>`;
+            myCommentsList.innerHTML = '';
+            editProfileButton.style.display = 'none';
+        }
+    };
+
+    const renderProfileData = (data, isMyProfile) => {
+        if (isMyProfile) {
+            profileTitle.textContent = '내 프로필';
+            editProfileButton.style.display = 'block';
+        } else {
+            const profileName = escapeHTML(data.name || '사용자');
+            profileTitle.textContent = `${profileName}의 프로필`;
+            editProfileButton.style.display = 'none';
+        }
+
+        myPostsList.innerHTML = data.posts.length === 0 ? '<li>작성한 글이 없습니다.</li>' : data.posts.map(post => `
+            <li>
+                <h3>${escapeHTML(post.title)}</h3>
+                <p>${escapeHTML(post.content)}</p>
+                <span class="post-date">작성일: ${formatDate(post.createdAt)}</span>
+            </li>
+        `).join('');
+
+        myCommentsList.innerHTML = data.comments.length === 0 ? '<li>작성한 댓글이 없습니다.</li>' : data.comments.map(comment => `
+            <li>
+                <p>${escapeHTML(comment.content)}</p>
+                <span class="comment-meta">원문: ${escapeHTML(comment.postTitle)}</span>
+                <span class="comment-date">작성일: ${formatDate(comment.createdAt)}</span>
+            </li>
+        `).join('');
+    };
+
+    const handleProfileEdit = async (e) => {
+        e.preventDefault();
+        const currentPassword = currentPasswordInput.value;
+        const newName = newNameInput.value.trim();
+        const newPassword = newPasswordInput.value;
+
+        if (!currentPassword) {
+            alert('현재 비밀번호를 입력해주세요.');
+            return;
+        }
+        if (!newName && !newPassword) {
+            alert('변경할 이름 또는 비밀번호를 입력해주세요.');
+            return;
+        }
+
+        try {
+            const response = await fetchWithAuth(`${profileApiBaseUrl}/me`, {
+                method: 'PUT',
+                body: JSON.stringify({ currentPassword, newName, newPassword }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || '프로필 수정에 실패했습니다.');
+
+            alert(data.message);
+            editProfileModal.style.display = 'none';
+            editProfileForm.reset();
+
+            if (data.token) {
+                localStorage.setItem('jwt_token', data.token);
+                token = data.token;
+            }
+            // Re-fetch user data and update UI
+            const meResponse = await fetchWithAuth(`${authApiUrl}/me`);
+            currentUser = await meResponse.json();
+            updateUI(); // This will refresh the welcome message
+            showProfileView(currentUser.id); // Refresh profile view
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
+
+
+    // --- Admin Logic ---
+    const showAdminView = async () => {
+        if (!currentUser || currentUser.role !== 'admin') {
+            alert('접근 권한이 없습니다.');
+            showAppView(null);
+            return;
+        }
+        showAppView('admin-view');
+        await fetchAndRenderUsers();
+    };
+
+    const fetchAndRenderUsers = async () => {
+        try {
+            const response = await fetchWithAuth(`${adminApiUrl}/users`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '사용자 정보를 불러오는 데 실패했습니다.');
+            }
+            const users = await response.json();
+            renderUsers(users);
+        } catch (error) {
+            console.error('Error fetching users:', error);
+            usersTableBody.innerHTML = `<tr><td colspan="8">${error.message}</td></tr>`;
+        }
+    };
+
+    const renderUsers = (users) => {
+        usersTableBody.innerHTML = '';
+        if (users.length === 0) {
+            usersTableBody.innerHTML = '<tr><td colspan="8">등록된 사용자가 없습니다.</td></tr>';
+            return;
+        }
+        usersTableBody.innerHTML = users.map(user => {
+            const isSuspended = user.isSuspended;
+            const suspendButtonText = isSuspended ? '정지 해제' : '계정 정지';
+            const buttonActionClass = isSuspended ? 'unsuspend-action' : 'suspend-action';
+            const statusText = isSuspended ? '정지됨' : '활성';
+            const statusClass = isSuspended ? 'status-suspended' : 'status-active';
+
+            const actionControls = user.role === 'admin' ? '<span>(관리자)</span>' : `
+                <div class="action-group">
+                    <button class="suspend-toggle-btn ${buttonActionClass}" data-user-id="${user.id}">${suspendButtonText}</button>
+                </div>
+                <div class="action-group">
+                    <input type="number" class="score-input" value="${user.score}" placeholder="점수" style="width: 60px;"/>
+                    <button class="adjust-score-btn" data-user-id="${user.id}">점수 조정</button>
+                </div>
+            `;
+            return `
+                <tr data-user-id="${user.id}">
+                    <td>${escapeHTML(user.name)}</td>
+                    <td>${escapeHTML(user.userId)}</td>
+                    <td>${formatDate(user.createdAt)}</td>
+                    <td><span class="rank rank-${(user.rank || '').toLowerCase()}">${escapeHTML(user.rank)}</span></td>
+                    <td>${user.score}</td>
+                    <td>${user.postCount}</td>
+                    <td><span class="${statusClass}">${statusText}</span></td>
+                    <td>${actionControls}</td>
+                </tr>
+            `;
+        }).join('');
+    };
+
+    const handleAdminTableClick = async (e) => {
+        const target = e.target;
+        const userId = target.dataset.userId;
+
+        if (target.classList.contains('suspend-toggle-btn')) {
+            if (!confirm('정말로 이 사용자의 상태를 변경하시겠습니까?')) return;
+            try {
+                const response = await fetchWithAuth(`${adminApiUrl}/users/${userId}/toggle-suspend`, { method: 'POST' });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || '작업에 실패했습니다.');
+                alert(result.message);
+                fetchAndRenderUsers();
+            } catch (error) {
+                console.error('Error toggling suspension:', error);
+                alert(error.message);
+            }
+        }
+
+        if (target.classList.contains('adjust-score-btn')) {
+            const scoreInput = target.closest('td').querySelector('.score-input');
+            const newScore = parseInt(scoreInput.value, 10);
+            if (isNaN(newScore)) {
+                alert('유효한 점수를 입력하세요.');
+                return;
+            }
+            if (!confirm(`사용자의 점수를 ${newScore}(으)로 변경하시겠습니까?`)) return;
+            try {
+                const response = await fetchWithAuth(`${adminApiUrl}/users/${userId}/adjust-score`, {
+                    method: 'POST',
+                    body: JSON.stringify({ score: newScore }),
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || '점수 조정에 실패했습니다.');
+                alert(result.message);
+                fetchAndRenderUsers();
+            } catch (error) {
+                console.error('Error adjusting score:', error);
+                alert(error.message);
+            }
+        }
+    };
+
 
     // --- Core App Logic (Posts & Comments) ---
     const fetchPosts = async () => {
@@ -408,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editDescBtnContainer.appendChild(editButton);
         }
 
-        switchView('board-detail');
+        showAppView('board-detail-view');
         fetchPosts();
     });
 
@@ -656,8 +902,6 @@ document.addEventListener('DOMContentLoaded', () => {
         createFormContainer.style.display = 'block';
     };
 
-    cancelEditBtn.addEventListener('click', hideEditForm);
-
     function escapeHTML(str) {
         if (typeof str !== 'string') return '';
         const div = document.createElement('div');
@@ -672,10 +916,163 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Initial Load ---
-    checkLoginStatus();
-
+    // --- Event Listeners ---
+    loginForm.addEventListener('submit', handleLogin);
+    logoutButton.addEventListener('click', handleLogout);
     logoDiv.addEventListener('click', () => {
-        window.location.href = '/';
+        window.history.pushState({}, '', '/');
+        showAppView(null);
     });
+    adminButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.history.pushState({}, '', '/?view=admin');
+        showAdminView();
+    });
+    profileButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (currentUser) {
+            window.history.pushState({}, '', `/?userId=${currentUser.id}`);
+            showProfileView(currentUser.id);
+        } else {
+            alert('로그인이 필요합니다.');
+        }
+    });
+
+    // Board List
+    showCreateBoardFormButton.addEventListener('click', () => createBoardFormContainer.style.display = 'block');
+    cancelCreateBoardButton.addEventListener('click', () => createBoardFormContainer.style.display = 'none');
+    createBoardForm.addEventListener('submit', handleCreateBoard);
+    boardsList.addEventListener('click', (e) => {
+        const boardLi = e.target.closest('li[data-board-id]');
+        if (!boardLi) return;
+
+        document.querySelectorAll('#boards-list li').forEach(li => li.classList.remove('active'));
+        boardLi.classList.add('active');
+
+        currentBoardId = parseInt(boardLi.dataset.boardId, 10);
+        const board = boardsData.find(b => b.id === currentBoardId);
+        if (!board) return;
+
+        boardTitleHeader.textContent = board.name;
+        boardDescriptionDetail.textContent = board.description || '';
+
+        editDescBtnContainer.innerHTML = '';
+        const isCreator = currentUser && currentUser.id === board.createdBy;
+        if (isCreator) {
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-description-btn';
+            editButton.textContent = '설명 수정';
+            editDescBtnContainer.appendChild(editButton);
+        }
+
+        showAppView('board-detail-view');
+        fetchPosts();
+    });
+
+    // Board Detail
+    boardDetailHeader.addEventListener('click', (e) => {
+        const board = boardsData.find(b => b.id === currentBoardId);
+        if (!board) return;
+        if (e.target.classList.contains('edit-description-btn')) {
+            boardDescriptionDetail.innerHTML = `<textarea id="edit-description-input" class="edit-description-input">${escapeHTML(board.description || '')}</textarea>`;
+            editDescBtnContainer.innerHTML = `<button class="save-description-btn">저장</button><button class="cancel-edit-description-btn">취소</button>`;
+        } else if (e.target.classList.contains('save-description-btn')) {
+            const newDescription = document.getElementById('edit-description-input').value;
+            handleUpdateDescription(currentBoardId, newDescription);
+        } else if (e.target.classList.contains('cancel-edit-description-btn')) {
+            boardDescriptionDetail.textContent = board.description || '';
+            editDescBtnContainer.innerHTML = '';
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-description-btn';
+            editButton.textContent = '설명 수정';
+            editDescBtnContainer.appendChild(editButton);
+        }
+    });
+    createForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const title = createTitleInput.value.trim();
+        const content = createContentInput.value.trim();
+        const attachmentFile = attachmentInput.files[0];
+        if (!title || !content) {
+            alert('제목과 내용을 모두 입력해주세요.');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('content', content);
+        formData.append('boardId', currentBoardId);
+        if (attachmentFile) formData.append('attachment', attachmentFile);
+        try {
+            const response = await fetchWithAuth(postsApiUrl, { method: 'POST', body: formData });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '게시물 생성에 실패했습니다.');
+            }
+            createTitleInput.value = '';
+            createContentInput.value = '';
+            attachmentInput.value = '';
+            imagePreviewContainer.innerHTML = '';
+            fetchPosts();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    });
+    attachmentInput.addEventListener('change', () => {
+        const file = attachmentInput.files[0];
+        imagePreviewContainer.innerHTML = '';
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                imagePreviewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    postsList.addEventListener('click', handlePostAndCommentActions);
+    postsList.addEventListener('submit', handleCommentSubmit);
+    cancelEditBtn.addEventListener('click', hideEditForm);
+
+    // Profile View
+    editProfileButton.addEventListener('click', () => editProfileModal.style.display = 'block');
+    closeButton.addEventListener('click', () => {
+        editProfileModal.style.display = 'none';
+        editProfileForm.reset();
+    });
+    window.addEventListener('click', (event) => {
+        if (event.target === editProfileModal) {
+            editProfileModal.style.display = 'none';
+            editProfileForm.reset();
+        }
+    });
+    editProfileForm.addEventListener('submit', handleProfileEdit);
+
+    // Admin View
+    usersTableBody.addEventListener('click', handleAdminTableClick);
+
+
+    // --- URL Routing and Initial Load ---
+    const handleRouting = () => {
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('userId');
+        const view = params.get('view');
+
+        if (view === 'admin') {
+            showAdminView();
+        } else if (userId) {
+            showProfileView(userId);
+        } else {
+            // Default view
+            showAppView(null);
+        }
+    };
+
+    const initialLoad = async () => {
+        await checkLoginStatus();
+        handleRouting();
+    };
+
+    initialLoad();
 });
