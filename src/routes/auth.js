@@ -84,10 +84,17 @@ router.post('/login', async (req, res) => {
             return res.status(403).json({ message: '이 계정은 정지되었습니다. 관리자에게 문의하세요.' });
         }
 
-        // Compare password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(401).json({ message: '아이디 또는 비밀번호가 잘못되었습니다.' });
+        // Special case for the default admin user (ID 1) whose password is not hashed
+        if (user.id === 1 && user.password === '1') {
+            if (password !== '1') {
+                return res.status(401).json({ message: '아이디 또는 비밀번호가 잘못되었습니다.' });
+            }
+        } else {
+            // For all other users, compare the hashed password
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ message: '아이디 또는 비밀번호가 잘못되었습니다.' });
+            }
         }
 
         // Create JWT
