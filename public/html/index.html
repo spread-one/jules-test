@@ -35,52 +35,63 @@
                 <button id="logout-button">로그아웃</button>
             </div>
 
-            <div id="boards-container" class="boards-container">
-                <h2>게시판 목록</h2>
-                <ul id="boards-list">
-                    <!-- Board list will be dynamically inserted here -->
-                </ul>
-                <button id="show-create-board-form-button">게시판 추가</button>
+            <!-- View 1: Board List -->
+            <div id="board-list-view">
+                <div id="boards-container" class="boards-container">
+                    <h2>게시판 목록</h2>
+                    <ul id="boards-list">
+                        <!-- Board list will be dynamically inserted here -->
+                    </ul>
+                    <button id="show-create-board-form-button">게시판 추가</button>
+                </div>
+
+                <div id="create-board-form-container" class="form-container" style="display:none;">
+                    <h2>새 게시판 생성</h2>
+                    <form id="create-board-form">
+                        <input type="text" id="create-board-name" placeholder="게시판 이름" required>
+                        <textarea id="create-board-description" placeholder="게시판 설명"></textarea>
+                        <button type="submit">생성</button>
+                        <button type="button" id="cancel-create-board">취소</button>
+                    </form>
+                </div>
             </div>
 
-            <div id="create-board-form-container" class="form-container" style="display:none;">
-                <h2>새 게시판 생성</h2>
-                <form id="create-board-form">
-                    <input type="text" id="create-board-name" placeholder="게시판 이름" required>
-                    <textarea id="create-board-description" placeholder="게시판 설명"></textarea>
-                    <button type="submit">생성</button>
-                    <button type="button" id="cancel-create-board">취소</button>
-                </form>
+            <!-- View 2: Board Detail (Posts) -->
+            <div id="board-detail-view" style="display: none;">
+                <div id="board-detail-header">
+                    <button id="back-to-list-btn">← 목록으로</button>
+                    <h2 id="board-title-header"></h2>
+                </div>
+
+                <div id="create-form-container" class="form-container">
+                    <h2>새 글 작성</h2>
+                    <form id="create-post-form">
+                        <input type="text" id="create-title" placeholder="제목" required>
+                        <textarea id="create-content" placeholder="내용" required></textarea>
+                        <input type="file" id="create-attachment" accept="image/*, .pdf, .doc, .docx, .txt">
+                        <div id="image-preview" class="image-preview"></div>
+                        <button type="submit">등록</button>
+                    </form>
+                </div>
+
+                <div id="edit-form-container" class="form-container" style="display:none;">
+                    <h2>글 수정</h2>
+                    <form id="edit-post-form">
+                        <input type="hidden" id="edit-post-id">
+                        <input type="text" id="edit-title" placeholder="제목" required>
+                        <textarea id="edit-content" placeholder="내용" required></textarea>
+                        <button type="submit">수정 완료</button>
+                        <button type="button" id="cancel-edit">취소</button>
+                    </form>
+                </div>
+
+                <div class="posts-container">
+                    <h2>게시글 목록</h2>
+                    <ul id="posts-list">
+                        <!-- Posts will be dynamically inserted here by main.js -->
+                    </ul>
+                </div>
             </div>
-
-            <div id="create-form-container" class="form-container">
-                <h2>새 글 작성</h2>
-            <form id="create-post-form">
-                <input type="text" id="create-title" placeholder="제목" required>
-                <textarea id="create-content" placeholder="내용" required></textarea>
-                <input type="file" id="create-attachment" accept="image/*, .pdf, .doc, .docx, .txt">
-                <div id="image-preview" class="image-preview"></div>
-                <button type="submit">등록</button>
-            </form>
-        </div>
-
-        <div id="edit-form-container" class="form-container" style="display:none;">
-            <h2>글 수정</h2>
-            <form id="edit-post-form">
-                <input type="hidden" id="edit-post-id">
-                <input type="text" id="edit-title" placeholder="제목" required>
-                <textarea id="edit-content" placeholder="내용" required></textarea>
-                <button type="submit">수정 완료</button>
-                <button type="button" id="cancel-edit">취소</button>
-            </form>
-        </div>
-
-        <div class="posts-container">
-            <h2>게시글 목록</h2>
-            <ul id="posts-list">
-                <!-- Posts will be dynamically inserted here by main.js -->
-            </ul>
-        </div>
     </div>
 
     <script src="/js/main.js"></script>

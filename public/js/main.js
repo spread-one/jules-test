@@ -41,6 +41,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const editContentInput = document.getElementById('edit-content');
     const cancelEditBtn = document.getElementById('cancel-edit');
 
+    const boardListView = document.getElementById('board-list-view');
+    const boardDetailView = document.getElementById('board-detail-view');
+    const boardDetailHeader = document.getElementById('board-detail-header');
+    const boardTitleHeader = document.getElementById('board-title-header');
+    const backToListBtn = document.getElementById('back-to-list-btn');
+
+    // --- View Switching ---
+    const switchView = (viewName) => {
+        boardListView.style.display = 'none';
+        boardDetailView.style.display = 'none';
+
+        if (viewName === 'board-list') {
+            boardListView.style.display = 'block';
+        } else if (viewName === 'board-detail') {
+            boardDetailView.style.display = 'block';
+        }
+    };
+
     // --- Auth Functions ---
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -120,13 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminButton.style.display = 'none';
             }
             userWelcomeMessage.innerHTML = welcomeHTML;
+            switchView('board-list'); // Set initial view
             fetchBoards();
         } else {
             authContainer.style.display = 'block';
             appContainer.style.display = 'none';
-            postsList.innerHTML = '';
-            boardsList.innerHTML = '';
-            adminButton.style.display = 'none';
         }
     };
 
@@ -149,14 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error('게시판 목록을 불러오는 데 실패했습니다.');
             boardsData = await response.json();
             renderBoards(boardsData);
-            if (boardsData.length > 0) {
-                if (!boardsData.find(b => b.id === currentBoardId)) {
-                    currentBoardId = boardsData[0].id;
-                }
-                fetchPosts();
-            } else {
-                postsList.innerHTML = '<li>게시판을 생성해주세요.</li>';
-            }
         } catch (error) {
             console.error(error);
             alert(error.message);
@@ -387,10 +395,13 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelCreateBoardButton.addEventListener('click', () => createBoardFormContainer.style.display = 'none');
     createBoardForm.addEventListener('submit', handleCreateBoard);
 
+    backToListBtn.addEventListener('click', () => {
+        switchView('board-list');
+    });
+
     boardsList.addEventListener('click', (e) => {
         const boardLi = e.target.closest('li[data-board-id]');
         if (!boardLi) return;
-
         const boardId = parseInt(boardLi.dataset.boardId, 10);
 
         if (e.target.classList.contains('edit-description-btn')) {
@@ -399,8 +410,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const currentDescription = board ? board.description : '';
 
             boardLi.innerHTML = `
-                <div class="board-info-edit">
+                <div class="board-info">
                     <span class="board-name">${escapeHTML(board.name)}</span>
+                </div>
+                <div class="board-info-edit">
                     <textarea class="edit-description-input">${escapeHTML(currentDescription)}</textarea>
                     <button class="save-description-btn">저장</button>
                     <button class="cancel-edit-description-btn">취소</button>
@@ -415,8 +428,11 @@ document.addEventListener('DOMContentLoaded', () => {
             renderBoards(boardsData);
         } else if (!e.target.closest('.board-info-edit')) {
             currentBoardId = boardId;
-            document.querySelectorAll('#boards-list li').forEach(li => li.classList.remove('active'));
-            boardLi.classList.add('active');
+            const board = boardsData.find(b => b.id === currentBoardId);
+            if (board) {
+                boardTitleHeader.textContent = board.name;
+            }
+            switchView('board-detail');
             fetchPosts();
         }
     });
