@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
 const data = require('../dataStore');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 // Note: All routes in this file are implicitly protected because the
 // parent router in posts.js can have middleware. However, for clarity

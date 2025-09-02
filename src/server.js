@@ -7,6 +7,7 @@ const port = 3000;
 const authRoutes = require('./routes/auth');
 const postRoutes = require('./routes/posts');
 const profileRoutes = require('./routes/profile');
+const adminRoutes = require('./routes/admin'); // Import admin routes
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/admin', adminRoutes); // Use admin routes
 
 
 // Serve static files from the 'public' directory

@@ -22,4 +22,17 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-module.exports = authMiddleware;
+const adminOnly = (req, res, next) => {
+    // This middleware should be used AFTER authMiddleware,
+    // so req.user will be populated.
+    if (req.user && req.user.role === 'admin') {
+        next();
+    } else {
+        res.status(403).json({ message: '접근 권한이 없습니다. 관리자만 접근할 수 있습니다.' });
+    }
+};
+
+module.exports = {
+    authMiddleware,
+    adminOnly,
+};
