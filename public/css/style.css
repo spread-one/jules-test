@@ -122,8 +122,9 @@ button:hover {
 
 #user-info {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
+    gap: 15px;
     padding: 15px;
     background: var(--background-secondary);
     border-radius: 8px;
