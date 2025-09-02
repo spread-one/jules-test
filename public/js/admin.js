@@ -68,14 +68,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const tr = document.createElement('tr');
             tr.setAttribute('data-user-id', user.id);
 
-            const suspendButtonText = user.isSuspended ? '정지 해제' : '계정 정지';
-            const statusText = user.isSuspended ? '정지됨' : '활성';
-            const statusClass = user.isSuspended ? 'status-suspended' : 'status-active';
+            const isSuspended = user.isSuspended;
+            const suspendButtonText = isSuspended ? '정지 해제' : '계정 정지';
+            const buttonActionClass = isSuspended ? 'unsuspend-action' : 'suspend-action';
+            const statusText = isSuspended ? '정지됨' : '활성';
+            const statusClass = isSuspended ? 'status-suspended' : 'status-active';
 
             // Admins cannot be suspended
             const actionButton = user.role === 'admin'
                 ? '<span>(관리자)</span>'
-                : `<button class="suspend-toggle-btn" data-user-id="${user.id}">${suspendButtonText}</button>`;
+                : `<button class="suspend-toggle-btn ${buttonActionClass}" data-user-id="${user.id}">${suspendButtonText}</button>`;
 
             tr.innerHTML = `
                 <td>${escapeHTML(user.name)}</td>

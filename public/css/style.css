@@ -420,3 +420,92 @@ button:hover {
     border-radius: 8px;
     border: 1px solid var(--border-color);
 }
+
+/* --- Admin Page Styles --- */
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.admin-header h1 {
+    margin: 0;
+}
+
+.button-link {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--primary-color);
+    color: var(--background-primary);
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+.button-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 15px var(--primary-color);
+}
+
+#users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+#users-table th, #users-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#users-table th {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: var(--primary-color);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#users-table tbody tr {
+    transition: background-color 0.2s ease-in-out;
+}
+
+#users-table tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#users-table td .status-active {
+    color: var(--secondary-color);
+    font-weight: bold;
+}
+
+#users-table td .status-suspended {
+    color: var(--error-color);
+    font-weight: bold;
+}
+
+.suspend-toggle-btn {
+    padding: 8px 12px;
+    font-size: 0.9em;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Style for the "Suspend" button */
+.suspend-toggle-btn.suspend-action {
+    background: linear-gradient(90deg, #dc3545, #c82333);
+}
+.suspend-toggle-btn.suspend-action:hover {
+    box-shadow: 0 0 15px #dc3545;
+}
+
+/* Style for the "Unsuspend" button */
+.suspend-toggle-btn.unsuspend-action {
+    background: linear-gradient(90deg, #28a745, #218838);
+}
+.suspend-toggle-btn.unsuspend-action:hover {
+    box-shadow: 0 0 15px #28a745;
+}
