@@ -27,3 +27,6 @@
 
 ## branch naming
 - feat/으로 시작
+
+## prompt
+- 설명과 주석은 모두 한국어로
