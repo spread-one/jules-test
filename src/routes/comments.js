@@ -36,6 +36,14 @@ router.post('/', authMiddleware, (req, res) => {
     };
     post.comments.push(newComment);
     post.comments.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    // Add points for creating a comment
+    const author = data.users.find(u => u.id === req.user.id);
+    if (author) {
+        author.score += 5;
+        console.log(`User ${author.userId} score increased to ${author.score} for creating a comment.`);
+    }
+
     res.status(201).json(newComment);
 });
 
@@ -123,14 +131,35 @@ router.post('/:commentId/vote', authMiddleware, (req, res) => {
         return res.status(400).json({ message: '잘못된 투표 유형입니다.' });
     }
 
+    const author = data.users.find(u => u.id === comment.authorId);
+    if (!author) {
+        return res.status(500).json({ message: '댓글 작성자를 찾을 수 없습니다.' });
+    }
+
     const existingVote = comment.votes[userId];
+    let scoreChange = 0;
 
     if (existingVote === voteType) {
-        // User is revoking their vote
+        // Revoking a vote
         delete comment.votes[userId];
-    } else {
-        // New vote or changing vote
+        if (voteType === 'like') scoreChange = -5;
+        if (voteType === 'dislike') scoreChange = 3;
+    } else if (existingVote) {
+        // Changing a vote
         comment.votes[userId] = voteType;
+        if (voteType === 'like') scoreChange = 5 + 3;
+        if (voteType === 'dislike') scoreChange = -3 - 5;
+    } else {
+        // New vote
+        comment.votes[userId] = voteType;
+        if (voteType === 'like') scoreChange = 5;
+        if (voteType === 'dislike') scoreChange = -3;
+    }
+
+    // Apply score change to the author
+    if (author) {
+        author.score += scoreChange;
+        console.log(`User ${author.userId} score changed by ${scoreChange} to ${author.score} for a vote on a comment.`);
     }
 
     // Recalculate likes and dislikes
