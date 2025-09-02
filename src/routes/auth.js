@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const data = require('../dataStore');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 const JWT_SECRET = 'your_jwt_secret_key'; // In a real app, use an environment variable
 
@@ -44,6 +44,8 @@ router.post('/signup', async (req, res) => {
             userId,
             password: hashedPassword,
             role: role, // Add role to user object
+            createdAt: new Date(),
+            isSuspended: false,
         };
 
         data.users.push(newUser);
@@ -73,6 +75,11 @@ router.post('/login', async (req, res) => {
         const user = data.users.find(u => u.userId === userId);
         if (!user) {
             return res.status(401).json({ message: '아이디 또는 비밀번호가 잘못되었습니다.' });
+        }
+
+        // Check if user is suspended
+        if (user.isSuspended) {
+            return res.status(403).json({ message: '이 계정은 정지되었습니다. 관리자에게 문의하세요.' });
         }
 
         // Compare password

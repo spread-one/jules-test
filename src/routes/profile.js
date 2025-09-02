@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const data = require('../dataStore');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 const JWT_SECRET = 'your_jwt_secret_key'; // In a real app, use an environment variable
 

@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInfo = document.getElementById('user-info');
     const userWelcomeMessage = document.getElementById('user-welcome-message');
     const logoutButton = document.getElementById('logout-button');
+    const adminButton = document.getElementById('admin-button');
 
     const postsList = document.getElementById('posts-list');
     const createForm = document.getElementById('create-post-form');
@@ -109,6 +110,9 @@ document.addEventListener('DOMContentLoaded', () => {
             let welcomeHTML = `${escapeHTML(currentUser.name)}(${escapeHTML(currentUser.userId)})님, 환영합니다!`;
             if (currentUser.role === 'admin') {
                 welcomeHTML += ` <span class="admin-badge">(관리자)</span>`;
+                adminButton.style.display = 'inline-block'; // Show admin button
+            } else {
+                adminButton.style.display = 'none'; // Hide admin button
             }
             userWelcomeMessage.innerHTML = welcomeHTML;
 
@@ -118,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authContainer.style.display = 'block';
             appContainer.style.display = 'none';
             postsList.innerHTML = ''; // Clear posts
+            adminButton.style.display = 'none'; // Hide admin button
         }
     };
 
