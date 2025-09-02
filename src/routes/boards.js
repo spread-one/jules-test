@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 let { boards, nextBoardId, users } = require('../dataStore');
-const { isAuthenticated } = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 // GET all boards
 router.get('/', (req, res) => {
@@ -9,9 +9,9 @@ router.get('/', (req, res) => {
 });
 
 // POST a new board
-router.post('/', isAuthenticated, (req, res) => {
+router.post('/', authMiddleware, (req, res) => {
     const { name, description } = req.body;
-    const user = users.find(u => u.id === req.session.user.id);
+    const user = users.find(u => u.id === req.user.id);
 
     if (!name) {
         return res.status(400).json({ message: '게시판 이름을 입력해주세요.' });
@@ -29,10 +29,10 @@ router.post('/', isAuthenticated, (req, res) => {
 });
 
 // PUT to update board description
-router.put('/:id/description', isAuthenticated, (req, res) => {
+router.put('/:id/description', authMiddleware, (req, res) => {
     const boardId = parseInt(req.params.id, 10);
     const { description } = req.body;
-    const user = users.find(u => u.id === req.session.user.id);
+    const user = users.find(u => u.id === req.user.id);
 
     const board = boards.find(b => b.id === boardId);
 
