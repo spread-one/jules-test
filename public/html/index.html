@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clinamen</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/profile.css">
 </head>
 <body>
     <div class="container">
@@ -13,11 +14,15 @@
                 <img src="/logo.png" alt="Clinamen Logo">
                 <h1>Clinamen</h1>
             </div>
-             <div id="user-info" class="user-info">
-                <span id="user-welcome-message"></span>
-                <a href="/html/profile.html" id="profile-button">내 프로필 보기</a>
-                <a href="/html/admin.html" id="admin-button" style="display: none;">관리자 페이지</a>
-                <button id="logout-button">로그아웃</button>
+            <div class="header-controls">
+                <div id="admin-button-container">
+                    <a href="#" id="admin-button" class="button-like" style="display: none;">관리자 페이지</a>
+                </div>
+                <div id="user-info" class="user-info">
+                    <span id="user-welcome-message"></span>
+                    <a href="#" id="profile-button">내 프로필 보기</a>
+                    <button id="logout-button">로그아웃</button>
+                </div>
             </div>
         </header>
 
@@ -100,6 +105,56 @@
                         <ul id="posts-list">
                             <!-- Posts will be dynamically inserted here by main.js -->
                         </ul>
+                    </div>
+                </div>
+
+                <!-- Profile View -->
+                <div id="profile-view" style="display: none;">
+                    <h1 id="profile-title">프로필</h1>
+                    <button id="edit-profile-button">내 정보 수정하기</button>
+                    <div id="profile-content">
+                        <h2>내가 쓴 글</h2>
+                        <ul id="my-posts-list"></ul>
+                        <h2>내가 쓴 댓글</h2>
+                        <ul id="my-comments-list"></ul>
+                    </div>
+                    <!-- Edit Profile Modal -->
+                    <div id="edit-profile-modal" class="modal" style="display: none;">
+                        <div class="modal-content">
+                            <span class="close-button">&times;</span>
+                            <h2>내 정보 수정</h2>
+                            <form id="edit-profile-form">
+                                <input type="password" id="current-password" placeholder="현재 비밀번호" required>
+                                <input type="text" id="new-name" placeholder="새 이름">
+                                <input type="password" id="new-password" placeholder="새 비밀번호">
+                                <button type="submit">수정하기</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin View -->
+                <div id="admin-view" style="display: none;">
+                    <h1>관리자 페이지</h1>
+                    <div class="users-container">
+                        <h2>사용자 목록</h2>
+                        <table id="users-table">
+                            <thead>
+                                <tr>
+                                    <th>이름</th>
+                                    <th>아이디</th>
+                                    <th>가입일</th>
+                                    <th>등급</th>
+                                    <th>점수</th>
+                                    <th>작성글 수</th>
+                                    <th>상태</th>
+                                    <th>조치</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <!-- User data will be dynamically inserted here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </main>
