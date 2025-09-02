@@ -46,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const boardDetailHeader = document.getElementById('board-detail-header');
     const boardTitleHeader = document.getElementById('board-title-header');
     const backToListBtn = document.getElementById('back-to-list-btn');
+    const boardDescriptionDetail = document.getElementById('board-description-detail');
+    const editDescBtnContainer = document.getElementById('edit-desc-btn-container');
 
     // --- View Switching ---
     const switchView = (viewName) => {
@@ -176,24 +178,10 @@ document.addEventListener('DOMContentLoaded', () => {
         boards.forEach(board => {
             const li = document.createElement('li');
             li.dataset.boardId = board.id;
-            if (board.id === currentBoardId) {
-                li.classList.add('active');
-            }
 
-            const isCreator = currentUser && currentUser.id === board.createdBy;
-
-            let boardHtml = `
-                <div class="board-info">
-                    <span class="board-name">${escapeHTML(board.name)}</span>
-                    <p class="board-description">${escapeHTML(board.description || '')}</p>
-                </div>
-            `;
-
-            if (isCreator) {
-                boardHtml += `<div class="board-actions"><button class="edit-description-btn">설명 수정</button></div>`;
-            }
-
-            li.innerHTML = boardHtml;
+            // The 'active' class will be managed on click now, not on render.
+            // This simplifies logic as we are not showing posts at the same time.
+            li.innerHTML = `<span class="board-name">${escapeHTML(board.name)}</span>`;
             boardsList.appendChild(li);
         });
     };
@@ -402,38 +390,57 @@ document.addEventListener('DOMContentLoaded', () => {
     boardsList.addEventListener('click', (e) => {
         const boardLi = e.target.closest('li[data-board-id]');
         if (!boardLi) return;
-        const boardId = parseInt(boardLi.dataset.boardId, 10);
+
+        // Set active class on board list
+        document.querySelectorAll('#boards-list li').forEach(li => li.classList.remove('active'));
+        boardLi.classList.add('active');
+
+        currentBoardId = parseInt(boardLi.dataset.boardId, 10);
+        const board = boardsData.find(b => b.id === currentBoardId);
+        if (!board) return;
+
+        // Populate header
+        boardTitleHeader.textContent = board.name;
+        boardDescriptionDetail.textContent = board.description || '';
+
+        // Handle edit button
+        editDescBtnContainer.innerHTML = ''; // Clear previous button
+        const isCreator = currentUser && currentUser.id === board.createdBy;
+        if (isCreator) {
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-description-btn';
+            editButton.textContent = '설명 수정';
+            editDescBtnContainer.appendChild(editButton);
+        }
+
+        switchView('board-detail');
+        fetchPosts();
+    });
+
+    boardDetailHeader.addEventListener('click', (e) => {
+        const board = boardsData.find(b => b.id === currentBoardId);
+        if (!board) return;
 
         if (e.target.classList.contains('edit-description-btn')) {
-            e.stopPropagation();
-            const board = boardsData.find(b => b.id === boardId);
-            const currentDescription = board ? board.description : '';
-
-            boardLi.innerHTML = `
-                <div class="board-info">
-                    <span class="board-name">${escapeHTML(board.name)}</span>
-                </div>
-                <div class="board-info-edit">
-                    <textarea class="edit-description-input">${escapeHTML(currentDescription)}</textarea>
-                    <button class="save-description-btn">저장</button>
-                    <button class="cancel-edit-description-btn">취소</button>
-                </div>
+            // Show edit UI
+            boardDescriptionDetail.innerHTML = `
+                <textarea id="edit-description-input" class="edit-description-input">${escapeHTML(board.description || '')}</textarea>
+            `;
+            editDescBtnContainer.innerHTML = `
+                <button class="save-description-btn">저장</button>
+                <button class="cancel-edit-description-btn">취소</button>
             `;
         } else if (e.target.classList.contains('save-description-btn')) {
-            e.stopPropagation();
-            const newDescription = boardLi.querySelector('.edit-description-input').value;
-            handleUpdateDescription(boardId, newDescription);
+            const newDescription = document.getElementById('edit-description-input').value;
+            handleUpdateDescription(currentBoardId, newDescription);
         } else if (e.target.classList.contains('cancel-edit-description-btn')) {
-            e.stopPropagation();
-            renderBoards(boardsData);
-        } else if (!e.target.closest('.board-info-edit')) {
-            currentBoardId = boardId;
-            const board = boardsData.find(b => b.id === currentBoardId);
-            if (board) {
-                boardTitleHeader.textContent = board.name;
-            }
-            switchView('board-detail');
-            fetchPosts();
+            // Just re-populate the header to cancel
+            boardDescriptionDetail.textContent = board.description || '';
+            editDescBtnContainer.innerHTML = '';
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-description-btn';
+            editButton.textContent = '설명 수정';
+            editDescBtnContainer.appendChild(editButton);
         }
     });
 
