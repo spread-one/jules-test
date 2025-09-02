@@ -25,13 +25,9 @@ body {
 }
 
 .container {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 40px auto;
-    padding: 30px;
-    background: var(--background-secondary);
-    border-radius: 16px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    border: 1px solid var(--border-color);
+    padding: 0;
 }
 
 h1, h2 {
@@ -131,7 +127,6 @@ button:hover {
     padding: 15px;
     background: var(--background-secondary);
     border-radius: 8px;
-    margin-bottom: 20px;
 }
 
 .admin-badge {
@@ -179,15 +174,17 @@ button:hover {
 }
 
 #posts-list li {
-    background: var(--background-secondary);
+    background: #FFFFFF;
     border: 1px solid var(--border-color);
     padding: 20px;
     border-radius: 12px;
     transition: transform 0.3s, box-shadow 0.3s;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 #posts-list li:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
 
 #posts-list li h3 {
@@ -520,7 +517,7 @@ button:hover {
 }
 
 #boards-list li {
-    background: var(--background-secondary);
+    background: var(--background-primary);
     border: 1px solid var(--border-color);
     padding: 20px;
     border-radius: 12px;
@@ -541,7 +538,9 @@ button:hover {
 
 /* Header and Logo */
 .main-header {
-    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 40px;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 20px;
@@ -550,7 +549,6 @@ button:hover {
 .logo {
     display: flex;
     align-items: center;
-    justify-content: center;
 }
 
 .logo img {
@@ -564,4 +562,22 @@ button:hover {
     margin-left: 15px;
     font-size: 2.2em;
     color: var(--text-primary);
+}
+
+/* New Layout Styles */
+.main-layout {
+    display: flex;
+    gap: 30px;
+}
+
+.sidebar {
+    width: 250px;
+    flex-shrink: 0;
+    background-color: var(--background-secondary);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.content {
+    flex-grow: 1;
 }
