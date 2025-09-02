@@ -129,7 +129,7 @@ router.get('/me', authMiddleware, (req, res) => {
     // Don't send the password hash
     const { password, ...userWithoutPassword } = user;
 
-    const rank = user.role === 'admin' ? 'Master' : getRank(user.score);
+    const rank = user.role === 'admin' ? 'admin' : getRank(user.score);
 
     res.json({
         ...userWithoutPassword,

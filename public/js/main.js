@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- UI Update ---
     const getRankIcon = (rank) => {
         switch (rank) {
+            case 'admin': return '🛡️';
             case 'Rookie': return '🔰';
             case 'Beginner': return '🌱';
             case 'Intermediate': return '🌿';
