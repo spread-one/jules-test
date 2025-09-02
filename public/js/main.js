@@ -45,19 +45,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const boardDetailView = document.getElementById('board-detail-view');
     const boardDetailHeader = document.getElementById('board-detail-header');
     const boardTitleHeader = document.getElementById('board-title-header');
-    const backToListBtn = document.getElementById('back-to-list-btn');
     const boardDescriptionDetail = document.getElementById('board-description-detail');
     const editDescBtnContainer = document.getElementById('edit-desc-btn-container');
 
     // --- View Switching ---
     const switchView = (viewName) => {
-        boardListView.style.display = 'none';
-        boardDetailView.style.display = 'none';
-
-        if (viewName === 'board-list') {
-            boardListView.style.display = 'block';
-        } else if (viewName === 'board-detail') {
+        if (viewName === 'board-detail') {
             boardDetailView.style.display = 'block';
+        } else {
+            boardDetailView.style.display = 'none';
         }
     };
 
@@ -141,7 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 adminButton.style.display = 'none';
             }
             userWelcomeMessage.innerHTML = welcomeHTML;
-            switchView('board-list'); // Set initial view
+            boardListView.style.display = 'block'; // Show sidebar
+            switchView('none'); // Hide detail view initially
             fetchBoards();
         } else {
             authContainer.style.display = 'block';
@@ -383,10 +380,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showCreateBoardFormButton.addEventListener('click', () => createBoardFormContainer.style.display = 'block');
     cancelCreateBoardButton.addEventListener('click', () => createBoardFormContainer.style.display = 'none');
     createBoardForm.addEventListener('submit', handleCreateBoard);
-
-    backToListBtn.addEventListener('click', () => {
-        switchView('board-list');
-    });
 
     boardsList.addEventListener('click', (e) => {
         const boardLi = e.target.closest('li[data-board-id]');

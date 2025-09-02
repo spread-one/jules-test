@@ -3,15 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>커뮤니티 게시판</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Clinamen</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div class="container">
-        <h1>커뮤니티 게시판</h1>
+        <header class="main-header">
+            <div class="logo">
+                <img src="/logo.png" alt="Clinamen Logo">
+                <h1>Clinamen</h1>
+            </div>
+             <div id="user-info" class="user-info">
+                <span id="user-welcome-message"></span>
+                <a href="/html/profile.html" id="profile-button">내 프로필 보기</a>
+                <a href="/html/admin.html" id="admin-button" style="display: none;">관리자 페이지</a>
+                <button id="logout-button">로그아웃</button>
+            </div>
+        </header>
 
         <!-- Auth Section -->
         <div id="auth-container">
@@ -27,77 +35,74 @@
         </div>
 
         <!-- Main App Content (hidden by default) -->
-        <div id="app-container" style="display: none;">
-            <div id="user-info" class="user-info">
-                <span id="user-welcome-message"></span>
-                <a href="/html/profile.html" id="profile-button">내 프로필 보기</a>
-                <a href="/html/admin.html" id="admin-button" style="display: none;">관리자 페이지</a>
-                <button id="logout-button">로그아웃</button>
-            </div>
+        <div id="app-container" class="main-layout" style="display: none;">
 
-            <!-- View 1: Board List -->
-            <div id="board-list-view">
-                <div id="boards-container" class="boards-container">
-                    <h2>게시판 목록</h2>
-                    <ul id="boards-list">
-                        <!-- Board list will be dynamically inserted here -->
-                    </ul>
-                    <button id="show-create-board-form-button">게시판 추가</button>
-                </div>
-
-                <div id="create-board-form-container" class="form-container" style="display:none;">
-                    <h2>새 게시판 생성</h2>
-                    <form id="create-board-form">
-                        <input type="text" id="create-board-name" placeholder="게시판 이름" required>
-                        <textarea id="create-board-description" placeholder="게시판 설명"></textarea>
-                        <button type="submit">생성</button>
-                        <button type="button" id="cancel-create-board">취소</button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- View 2: Board Detail (Posts) -->
-            <div id="board-detail-view" style="display: none;">
-                <div id="board-detail-header">
-                    <div>
-                        <button id="back-to-list-btn">← 목록으로</button>
-                        <h2 id="board-title-header"></h2>
+            <aside class="sidebar">
+                <!-- View 1: Board List -->
+                 <div id="board-list-view">
+                    <div id="boards-container" class="boards-container">
+                        <h2>게시판 목록</h2>
+                        <ul id="boards-list">
+                            <!-- Board list will be dynamically inserted here -->
+                        </ul>
+                        <button id="show-create-board-form-button">게시판 추가</button>
                     </div>
-                    <div>
-                        <p id="board-description-detail"></p>
-                        <span id="edit-desc-btn-container"></span>
+
+                    <div id="create-board-form-container" class="form-container" style="display:none;">
+                        <h2>새 게시판 생성</h2>
+                        <form id="create-board-form">
+                            <input type="text" id="create-board-name" placeholder="게시판 이름" required>
+                            <textarea id="create-board-description" placeholder="게시판 설명"></textarea>
+                            <button type="submit">생성</button>
+                            <button type="button" id="cancel-create-board">취소</button>
+                        </form>
                     </div>
                 </div>
+            </aside>
 
-                <div id="create-form-container" class="form-container">
-                    <h2>새 글 작성</h2>
-                    <form id="create-post-form">
-                        <input type="text" id="create-title" placeholder="제목" required>
-                        <textarea id="create-content" placeholder="내용" required></textarea>
-                        <input type="file" id="create-attachment" accept="image/*, .pdf, .doc, .docx, .txt">
-                        <div id="image-preview" class="image-preview"></div>
-                        <button type="submit">등록</button>
-                    </form>
-                </div>
+            <main class="content">
+                <!-- View 2: Board Detail (Posts) -->
+                <div id="board-detail-view" style="display: none;">
+                    <div id="board-detail-header">
+                        <div>
+                            <h2 id="board-title-header"></h2>
+                        </div>
+                        <div>
+                            <p id="board-description-detail"></p>
+                            <span id="edit-desc-btn-container"></span>
+                        </div>
+                    </div>
 
-                <div id="edit-form-container" class="form-container" style="display:none;">
-                    <h2>글 수정</h2>
-                    <form id="edit-post-form">
-                        <input type="hidden" id="edit-post-id">
-                        <input type="text" id="edit-title" placeholder="제목" required>
-                        <textarea id="edit-content" placeholder="내용" required></textarea>
-                        <button type="submit">수정 완료</button>
-                        <button type="button" id="cancel-edit">취소</button>
-                    </form>
-                </div>
+                    <div id="create-form-container" class="form-container">
+                        <h2>새 글 작성</h2>
+                        <form id="create-post-form">
+                            <input type="text" id="create-title" placeholder="제목" required>
+                            <textarea id="create-content" placeholder="내용" required></textarea>
+                            <input type="file" id="create-attachment" accept="image/*, .pdf, .doc, .docx, .txt">
+                            <div id="image-preview" class="image-preview"></div>
+                            <button type="submit">등록</button>
+                        </form>
+                    </div>
 
-                <div class="posts-container">
-                    <h2>게시글 목록</h2>
-                    <ul id="posts-list">
-                        <!-- Posts will be dynamically inserted here by main.js -->
-                    </ul>
+                    <div id="edit-form-container" class="form-container" style="display:none;">
+                        <h2>글 수정</h2>
+                        <form id="edit-post-form">
+                            <input type="hidden" id="edit-post-id">
+                            <input type="text" id="edit-title" placeholder="제목" required>
+                            <textarea id="edit-content" placeholder="내용" required></textarea>
+                            <button type="submit">수정 완료</button>
+                            <button type="button" id="cancel-edit">취소</button>
+                        </form>
+                    </div>
+
+                    <div class="posts-container">
+                        <h2>게시글 목록</h2>
+                        <ul id="posts-list">
+                            <!-- Posts will be dynamically inserted here by main.js -->
+                        </ul>
+                    </div>
                 </div>
-            </div>
+            </main>
     </div>
 
     <script src="/js/main.js"></script>
