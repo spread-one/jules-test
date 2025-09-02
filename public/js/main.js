@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const usersTableBody = document.getElementById('users-table-body');
 
     // --- View Switching ---
-    const showAppView = (viewId) => {
+    function showAppView(viewId) {
         [boardDetailView, profileView, adminView].forEach(view => {
             if (view) view.style.display = 'none';
         });
@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             sidebar.style.display = 'block';
         }
-    };
+    }
 
     // --- Auth & UI Functions ---
-    const handleLogin = async (e) => {
+    async function handleLogin(e) {
         e.preventDefault();
         const userId = loginUserIdInput.value.trim();
         const password = loginPasswordInput.value.trim();
@@ -115,16 +115,16 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             alert(error.message);
         }
-    };
+    }
 
-    const handleLogout = () => {
+    function handleLogout() {
         token = null;
         currentUser = null;
         localStorage.removeItem('jwt_token');
         window.location.href = '/';
-    };
+    }
 
-    const checkLoginStatus = async () => {
+    async function checkLoginStatus() {
         const storedToken = localStorage.getItem('jwt_token');
         if (storedToken) {
             token = storedToken;
@@ -142,9 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         updateUI();
-    };
+    }
 
-    const updateUI = () => {
+    function updateUI() {
         if (token && currentUser) {
             authContainer.style.display = 'none';
             appContainer.style.display = 'block';
@@ -156,10 +156,10 @@ document.addEventListener('DOMContentLoaded', () => {
             authContainer.style.display = 'block';
             appContainer.style.display = 'none';
         }
-    };
+    }
 
     // --- API Helper ---
-    const fetchWithAuth = (url, options = {}) => {
+    function fetchWithAuth(url, options = {}) {
         const headers = { ...options.headers };
         if (!options.body || !(options.body instanceof FormData)) {
             headers['Content-Type'] = 'application/json';
@@ -168,10 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
             headers['Authorization'] = `Bearer ${token}`;
         }
         return fetch(url, { ...options, headers });
-    };
+    }
 
     // --- Board Logic ---
-    const fetchBoards = async () => {
+    async function fetchBoards() {
         try {
             const response = await fetchWithAuth(boardsApiUrl);
             if (!response.ok) throw new Error('게시판 목록을 불러오는 데 실패했습니다.');
@@ -181,9 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             alert(error.message);
         }
-    };
+    }
 
-    const renderBoards = (boards) => {
+    function renderBoards(boards) {
         boardsList.innerHTML = '';
         boards.forEach(board => {
             const li = document.createElement('li');
@@ -191,15 +191,15 @@ document.addEventListener('DOMContentLoaded', () => {
             li.innerHTML = `<span class="board-name">${escapeHTML(board.name)}</span>`;
             boardsList.appendChild(li);
         });
-    };
+    }
 
     // --- Profile Logic ---
-    const showProfileView = (userId) => {
+    function showProfileView(userId) {
         showAppView('profile-view');
         fetchProfileData(userId);
-    };
+    }
 
-    const fetchProfileData = async (userId) => {
+    async function fetchProfileData(userId) {
         const isMyProfile = !userId || (currentUser && currentUser.id == userId);
         let profileApiUrl = isMyProfile ? `${profileApiBaseUrl}/me` : `${profileApiBaseUrl}/${userId}`;
         if (isMyProfile && !currentUser) {
@@ -218,16 +218,16 @@ document.addEventListener('DOMContentLoaded', () => {
             myCommentsList.innerHTML = '';
             editProfileButton.style.display = 'none';
         }
-    };
+    }
 
-    const renderProfileData = (data, isMyProfile) => {
+    function renderProfileData(data, isMyProfile) {
         profileTitle.textContent = isMyProfile ? '내 프로필' : `${escapeHTML(data.name || '사용자')}의 프로필`;
         editProfileButton.style.display = isMyProfile ? 'block' : 'none';
         myPostsList.innerHTML = data.posts.length ? data.posts.map(p => `<li><h3>${escapeHTML(p.title)}</h3><p>${escapeHTML(p.content)}</p><span class="post-date">작성일: ${formatDate(p.createdAt)}</span></li>`).join('') : '<li>작성한 글이 없습니다.</li>';
         myCommentsList.innerHTML = data.comments.length ? data.comments.map(c => `<li><p>${escapeHTML(c.content)}</p><span class="comment-meta">원문: ${escapeHTML(c.postTitle)}</span><span class="comment-date">작성일: ${formatDate(c.createdAt)}</span></li>`).join('') : '<li>작성한 댓글이 없습니다.</li>';
-    };
+    }
 
-    const handleProfileEdit = async (e) => {
+    async function handleProfileEdit(e) {
         e.preventDefault();
         const currentPassword = currentPasswordInput.value;
         const newName = newNameInput.value.trim();
@@ -256,19 +256,19 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             alert(error.message);
         }
-    };
+    }
 
     // --- Admin Logic ---
-    const showAdminView = async () => {
+    async function showAdminView() {
         if (!currentUser || currentUser.role !== 'admin') {
             alert('접근 권한이 없습니다.');
             return showAppView(null);
         }
         showAppView('admin-view');
         await fetchAndRenderUsers();
-    };
+    }
 
-    const fetchAndRenderUsers = async () => {
+    async function fetchAndRenderUsers() {
         try {
             const response = await fetchWithAuth(`${adminApiUrl}/users`);
             if (!response.ok) throw new Error((await response.json()).message || '사용자 정보를 불러오는 데 실패했습니다.');
@@ -277,9 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Error fetching users:', error);
             usersTableBody.innerHTML = `<tr><td colspan="8">${error.message}</td></tr>`;
         }
-    };
+    }
 
-    const renderUsers = (users) => {
+    function renderUsers(users) {
         usersTableBody.innerHTML = users.length ? users.map(user => {
             const isSuspended = user.isSuspended;
             const actionControls = user.role === 'admin' ? '<span>(관리자)</span>' : `
@@ -296,9 +296,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${user.postCount}</td><td><span class="${isSuspended ? 'status-suspended' : 'status-active'}">${isSuspended ? '정지됨' : '활성'}</span></td>
                     <td>${actionControls}</td></tr>`;
         }).join('') : '<tr><td colspan="8">등록된 사용자가 없습니다.</td></tr>';
-    };
+    }
 
-    const handleAdminTableClick = async (e) => {
+    async function handleAdminTableClick(e) {
         const target = e.target;
         const userId = target.dataset.userId;
         if (target.classList.contains('suspend-toggle-btn')) {
@@ -331,10 +331,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(error.message);
             }
         }
-    };
+    }
 
     // --- Core App Logic (Posts & Comments) ---
-    const fetchPosts = async () => {
+    async function fetchPosts() {
         try {
             const response = await fetchWithAuth(`${postsApiUrl}?boardId=${currentBoardId}`);
             if (!response.ok) throw new Error('게시물을 불러오는 데 실패했습니다.');
@@ -344,9 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             alert(error.message);
         }
-    };
+    }
 
-    const renderPosts = (posts) => {
+    function renderPosts(posts) {
         postsList.innerHTML = '';
         if (posts.length === 0) {
             postsList.innerHTML = '<li>이 게시판에는 게시물이 없습니다.</li>';
@@ -403,9 +403,9 @@ document.addEventListener('DOMContentLoaded', () => {
             li.innerHTML = `<h3>${escapeHTML(post.title)}</h3><p>${escapeHTML(post.content)}</p>${attachmentHtml}<div class="post-meta"><span class="post-author">작성자: <a href="#" data-user-id="${post.authorId}" class="profile-link">${postAuthorRankIcon} ${escapeHTML(post.authorName || '익명')}</a></span><span class="post-date">작성일: ${postDateString} ${postUpdatedDateString}</span></div><div class="post-feedback">${postVoteButtons}${postActions}</div>${commentsHtml}`;
             postsList.appendChild(li);
         });
-    };
+    }
 
-    const handlePostAndCommentActions = async (e) => {
+    async function handlePostAndCommentActions(e) {
         const target = e.target;
         const postLi = target.closest('li[data-id]');
         if (!postLi) return;
@@ -467,9 +467,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 fetchPosts();
             } catch (error) { console.error(error); alert(error.message); }
         }
-    };
+    }
 
-    const handleCommentSubmit = async (e) => {
+    async function handleCommentSubmit(e) {
         e.preventDefault();
         if (!e.target.classList.contains('comment-form')) return;
         const li = e.target.closest('li[data-id]');
@@ -490,27 +490,27 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(error);
             alert(error.message);
         }
-    };
+    }
 
     // --- Helper Functions ---
-    const getRankIcon = (rank) => ({'admin':'🛡️','Rookie':'🔰','Beginner':'🌱','Intermediate':'🌿','Expert':'🌳','Master':'👑'})[rank]||'';
-    const escapeHTML = (str) => {
+    function getRankIcon(rank) { return ({'admin':'🛡️','Rookie':'🔰','Beginner':'🌱','Intermediate':'🌿','Expert':'🌳','Master':'👑'})[rank]||''; }
+    function escapeHTML(str) {
         const p = document.createElement('p');
         p.appendChild(document.createTextNode(str));
         return p.innerHTML;
-    };
-    const formatDate = (date) => new Date(date).toLocaleString('ko-KR', { year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false });
-    const showEditForm = (id, title, content) => {
+    }
+    function formatDate(date) { return new Date(date).toLocaleString('ko-KR', { year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false }); }
+    function showEditForm(id, title, content) {
         editIdInput.value = id;
         editTitleInput.value = title;
         editContentInput.value = content;
         createFormContainer.style.display = 'none';
         editFormContainer.style.display = 'block';
-    };
-    const hideEditForm = () => {
+    }
+    function hideEditForm() {
         editFormContainer.style.display = 'none';
         createFormContainer.style.display = 'block';
-    };
+    }
 
     // --- Event Listeners ---
     loginForm.addEventListener('submit', handleLogin);
@@ -614,18 +614,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- URL Routing and Initial Load ---
-    const handleRouting = () => {
+    function handleRouting() {
         const params = new URLSearchParams(window.location.search);
         if (params.get('view') === 'admin') showAdminView();
         else if (params.has('userId')) showProfileView(params.get('userId'));
         else showAppView(null); // Default view
-    };
+    }
 
-    const initialLoad = async () => {
+    async function initialLoad() {
         await checkLoginStatus();
         handleRouting();
         window.onpopstate = handleRouting;
-    };
+    }
 
     initialLoad();
 });
