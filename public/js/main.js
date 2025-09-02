@@ -2,29 +2,37 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- State ---
     let token = null;
     let currentUser = null;
+    let currentBoardId = 1; // Default to the first board
+    let boardsData = []; // Cache for board data
 
     // --- API URLs ---
     const postsApiUrl = '/api/posts';
     const authApiUrl = '/api/auth';
+    const boardsApiUrl = '/api/boards';
 
     // --- DOM Elements ---
     const authContainer = document.getElementById('auth-container');
     const appContainer = document.getElementById('app-container');
-
     const loginForm = document.getElementById('login-form');
     const loginUserIdInput = document.getElementById('login-userId');
     const loginPasswordInput = document.getElementById('login-password');
-
     const userInfo = document.getElementById('user-info');
     const userWelcomeMessage = document.getElementById('user-welcome-message');
     const logoutButton = document.getElementById('logout-button');
     const adminButton = document.getElementById('admin-button');
-
+    const boardsList = document.getElementById('boards-list');
+    const showCreateBoardFormButton = document.getElementById('show-create-board-form-button');
+    const createBoardFormContainer = document.getElementById('create-board-form-container');
+    const createBoardForm = document.getElementById('create-board-form');
+    const createBoardNameInput = document.getElementById('create-board-name');
+    const createBoardDescriptionInput = document.getElementById('create-board-description');
+    const cancelCreateBoardButton = document.getElementById('cancel-create-board');
     const postsList = document.getElementById('posts-list');
     const createForm = document.getElementById('create-post-form');
     const createTitleInput = document.getElementById('create-title');
     const createContentInput = document.getElementById('create-content');
-
+    const attachmentInput = document.getElementById('create-attachment');
+    const imagePreviewContainer = document.getElementById('image-preview');
     const editFormContainer = document.getElementById('edit-form-container');
     const createFormContainer = document.getElementById('create-form-container');
     const editForm = document.getElementById('edit-post-form');
@@ -33,19 +41,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const editContentInput = document.getElementById('edit-content');
     const cancelEditBtn = document.getElementById('cancel-edit');
 
+    const boardListView = document.getElementById('board-list-view');
+    const boardDetailView = document.getElementById('board-detail-view');
+    const boardDetailHeader = document.getElementById('board-detail-header');
+    const boardTitleHeader = document.getElementById('board-title-header');
+    const backToListBtn = document.getElementById('back-to-list-btn');
+    const boardDescriptionDetail = document.getElementById('board-description-detail');
+    const editDescBtnContainer = document.getElementById('edit-desc-btn-container');
+
+    // --- View Switching ---
+    const switchView = (viewName) => {
+        boardListView.style.display = 'none';
+        boardDetailView.style.display = 'none';
+
+        if (viewName === 'board-list') {
+            boardListView.style.display = 'block';
+        } else if (viewName === 'board-detail') {
+            boardDetailView.style.display = 'block';
+        }
+    };
 
     // --- Auth Functions ---
-
     const handleLogin = async (e) => {
         e.preventDefault();
         const userId = loginUserIdInput.value.trim();
         const password = loginPasswordInput.value.trim();
-
         if (!userId || !password) {
             alert('아이디와 비밀번호를 모두 입력해주세요.');
             return;
         }
-
         try {
             const response = await fetch(`${authApiUrl}/login`, {
                 method: 'POST',
@@ -53,16 +77,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ userId, password }),
             });
             const data = await response.json();
-            if (!response.ok) {
-                throw new Error(data.message || '로그인에 실패했습니다.');
-            }
-
+            if (!response.ok) throw new Error(data.message || '로그인에 실패했습니다.');
             token = data.token;
             localStorage.setItem('jwt_token', token);
-
-            // Fetch user info to store locally
             await checkLoginStatus();
-
         } catch (error) {
             console.error(error);
             alert(error.message);
@@ -83,11 +101,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         token = storedToken;
-
         try {
              const response = await fetchWithAuth(`${authApiUrl}/me`);
              if (!response.ok) {
-                // Token is invalid or expired
                 handleLogout();
                 return;
              }
@@ -100,9 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- UI Update ---
-
     const getRankIcon = (rank) => {
         switch (rank) {
+            case 'admin': return '🛡️';
             case 'Rookie': return '🔰';
             case 'Beginner': return '🌱';
             case 'Intermediate': return '🌿';
@@ -114,53 +130,112 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateUI = () => {
         if (token && currentUser) {
-            // Logged in
             authContainer.style.display = 'none';
             appContainer.style.display = 'block';
-
             const rankIcon = getRankIcon(currentUser.rank);
             let welcomeHTML = `${rankIcon} ${escapeHTML(currentUser.name)}(${escapeHTML(currentUser.userId)})님, 환영합니다!`;
             if (currentUser.role === 'admin') {
                 welcomeHTML += ` <span class="admin-badge">(관리자)</span>`;
-                adminButton.style.display = 'inline-block'; // Show admin button
+                adminButton.style.display = 'inline-block';
             } else {
-                adminButton.style.display = 'none'; // Hide admin button
+                adminButton.style.display = 'none';
             }
             userWelcomeMessage.innerHTML = welcomeHTML;
-
-            fetchPosts();
+            switchView('board-list'); // Set initial view
+            fetchBoards();
         } else {
-            // Logged out
             authContainer.style.display = 'block';
             appContainer.style.display = 'none';
-            postsList.innerHTML = ''; // Clear posts
-            adminButton.style.display = 'none'; // Hide admin button
         }
     };
 
     // --- API Helper ---
-
     const fetchWithAuth = (url, options = {}) => {
-        const headers = {
-            ...options.headers,
-            'Content-Type': 'application/json',
-        };
-
+        const headers = { ...options.headers };
+        if (!options.body || !(options.body instanceof FormData)) {
+            headers['Content-Type'] = 'application/json';
+        }
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
-
         return fetch(url, { ...options, headers });
     };
 
-    // --- Core App Logic (Posts & Comments) ---
+    // --- Board Logic ---
+    const fetchBoards = async () => {
+        try {
+            const response = await fetchWithAuth(boardsApiUrl);
+            if (!response.ok) throw new Error('게시판 목록을 불러오는 데 실패했습니다.');
+            boardsData = await response.json();
+            renderBoards(boardsData);
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
 
+    const renderBoards = (boards) => {
+        boardsList.innerHTML = '';
+        boards.forEach(board => {
+            const li = document.createElement('li');
+            li.dataset.boardId = board.id;
+
+            // The 'active' class will be managed on click now, not on render.
+            // This simplifies logic as we are not showing posts at the same time.
+            li.innerHTML = `<span class="board-name">${escapeHTML(board.name)}</span>`;
+            boardsList.appendChild(li);
+        });
+    };
+
+    const handleUpdateDescription = async (boardId, newDescription) => {
+        try {
+            const response = await fetchWithAuth(`${boardsApiUrl}/${boardId}/description`, {
+                method: 'PUT',
+                body: JSON.stringify({ description: newDescription }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '설명 수정에 실패했습니다.');
+            }
+            await fetchBoards();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
+
+    const handleCreateBoard = async (e) => {
+        e.preventDefault();
+        const name = createBoardNameInput.value.trim();
+        const description = createBoardDescriptionInput.value.trim();
+        if (!name) {
+            alert('게시판 이름을 입력해주세요.');
+            return;
+        }
+        try {
+            const response = await fetchWithAuth(boardsApiUrl, {
+                method: 'POST',
+                body: JSON.stringify({ name, description }),
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '게시판 생성에 실패했습니다.');
+            }
+            createBoardNameInput.value = '';
+            createBoardDescriptionInput.value = '';
+            createBoardFormContainer.style.display = 'none';
+            await fetchBoards();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    };
+
+    // --- Core App Logic (Posts & Comments) ---
     const fetchPosts = async () => {
         try {
-            const response = await fetchWithAuth(postsApiUrl); // Public route, but auth helps identify user
-            if (!response.ok) {
-                throw new Error('게시물을 불러오는 데 실패했습니다.');
-            }
+            const response = await fetchWithAuth(`${postsApiUrl}?boardId=${currentBoardId}`);
+            if (!response.ok) throw new Error('게시물을 불러오는 데 실패했습니다.');
             const posts = await response.json();
             renderPosts(posts);
         } catch (error) {
@@ -172,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderPosts = (posts) => {
         postsList.innerHTML = '';
         if (posts.length === 0) {
-            postsList.innerHTML = '<li>게시물이 없습니다.</li>';
+            postsList.innerHTML = '<li>이 게시판에는 게시물이 없습니다.</li>';
             return;
         }
         posts.forEach(post => {
@@ -196,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             const commentUpdated = comment.createdAt !== comment.updatedAt;
                             const commentUpdatedString = commentUpdated ? `(수정됨: ${formatDate(new Date(comment.updatedAt))})` : '';
 
-                            // Conditionally show comment actions
                             const canModifyComment = currentUser && (currentUser.id === comment.authorId || currentUser.role === 'admin');
                             const commentActions = canModifyComment ? `
                                 <div class="comment-actions">
@@ -204,8 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <button class="comment-delete-btn">삭제</button>
                                 </div>` : '';
 
-                            // Vote states for comment
-                            const userVoteComment = comment.votes ? comment.votes[currentUser.id] : undefined;
+                            const userVoteComment = comment.votes && currentUser ? comment.votes[currentUser.id] : undefined;
                             const commentLikeClass = userVoteComment === 'like' ? 'active' : '';
                             const commentDislikeClass = userVoteComment === 'dislike' ? 'active' : '';
                             const isOwnComment = currentUser && currentUser.id === comment.authorId;
@@ -260,8 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="delete-btn">삭제</button>
                 </div>` : '';
 
-            // Vote states for post
-            const userVotePost = post.votes ? post.votes[currentUser.id] : undefined;
+            const userVotePost = post.votes && currentUser ? post.votes[currentUser.id] : undefined;
             const postLikeClass = userVotePost === 'like' ? 'active' : '';
             const postDislikeClass = userVotePost === 'dislike' ? 'active' : '';
             const isOwnPost = currentUser && currentUser.id === post.authorId;
@@ -275,7 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
                      <span class="dislike-count">${post.dislikes || 0}</span>
                 </div>`;
 
-            // --- Attachment HTML ---
             let attachmentHtml = '';
             if (post.attachment) {
                 const isImage = /\.(jpg|jpeg|png|gif)$/i.test(post.attachment);
@@ -306,38 +377,79 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    const attachmentInput = document.getElementById('create-attachment');
-    const imagePreviewContainer = document.getElementById('image-preview');
-
     // --- Event Listeners ---
-
     loginForm.addEventListener('submit', handleLogin);
     logoutButton.addEventListener('click', handleLogout);
+    showCreateBoardFormButton.addEventListener('click', () => createBoardFormContainer.style.display = 'block');
+    cancelCreateBoardButton.addEventListener('click', () => createBoardFormContainer.style.display = 'none');
+    createBoardForm.addEventListener('submit', handleCreateBoard);
 
-    // Image Preview Listener
-    attachmentInput.addEventListener('change', () => {
-        const file = attachmentInput.files[0];
-        imagePreviewContainer.innerHTML = ''; // Clear previous preview
+    backToListBtn.addEventListener('click', () => {
+        switchView('board-list');
+    });
 
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
+    boardsList.addEventListener('click', (e) => {
+        const boardLi = e.target.closest('li[data-board-id]');
+        if (!boardLi) return;
 
-            reader.onload = (e) => {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                imagePreviewContainer.appendChild(img);
-            };
+        // Set active class on board list
+        document.querySelectorAll('#boards-list li').forEach(li => li.classList.remove('active'));
+        boardLi.classList.add('active');
 
-            reader.readAsDataURL(file);
+        currentBoardId = parseInt(boardLi.dataset.boardId, 10);
+        const board = boardsData.find(b => b.id === currentBoardId);
+        if (!board) return;
+
+        // Populate header
+        boardTitleHeader.textContent = board.name;
+        boardDescriptionDetail.textContent = board.description || '';
+
+        // Handle edit button
+        editDescBtnContainer.innerHTML = ''; // Clear previous button
+        const isCreator = currentUser && currentUser.id === board.createdBy;
+        if (isCreator) {
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-description-btn';
+            editButton.textContent = '설명 수정';
+            editDescBtnContainer.appendChild(editButton);
+        }
+
+        switchView('board-detail');
+        fetchPosts();
+    });
+
+    boardDetailHeader.addEventListener('click', (e) => {
+        const board = boardsData.find(b => b.id === currentBoardId);
+        if (!board) return;
+
+        if (e.target.classList.contains('edit-description-btn')) {
+            // Show edit UI
+            boardDescriptionDetail.innerHTML = `
+                <textarea id="edit-description-input" class="edit-description-input">${escapeHTML(board.description || '')}</textarea>
+            `;
+            editDescBtnContainer.innerHTML = `
+                <button class="save-description-btn">저장</button>
+                <button class="cancel-edit-description-btn">취소</button>
+            `;
+        } else if (e.target.classList.contains('save-description-btn')) {
+            const newDescription = document.getElementById('edit-description-input').value;
+            handleUpdateDescription(currentBoardId, newDescription);
+        } else if (e.target.classList.contains('cancel-edit-description-btn')) {
+            // Just re-populate the header to cancel
+            boardDescriptionDetail.textContent = board.description || '';
+            editDescBtnContainer.innerHTML = '';
+            const editButton = document.createElement('button');
+            editButton.className = 'edit-description-btn';
+            editButton.textContent = '설명 수정';
+            editDescBtnContainer.appendChild(editButton);
         }
     });
 
-    // Create Post
     createForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = createTitleInput.value.trim();
         const content = createContentInput.value.trim();
-        const attachmentFile = document.getElementById('create-attachment').files[0];
+        const attachmentFile = attachmentInput.files[0];
 
         if (!title || !content) {
             alert('제목과 내용을 모두 입력해주세요.');
@@ -347,21 +459,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append('title', title);
         formData.append('content', content);
+        formData.append('boardId', currentBoardId);
         if (attachmentFile) {
             formData.append('attachment', attachmentFile);
         }
 
         try {
-            // We don't use fetchWithAuth here because we are sending FormData
-            // and need the browser to set the Content-Type header automatically.
-            const headers = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch(postsApiUrl, {
+            const response = await fetchWithAuth(postsApiUrl, {
                 method: 'POST',
-                headers,
                 body: formData,
             });
 
@@ -371,8 +476,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             createTitleInput.value = '';
             createContentInput.value = '';
-            attachmentInput.value = ''; // Clear file input
-            imagePreviewContainer.innerHTML = ''; // Clear preview
+            attachmentInput.value = '';
+            imagePreviewContainer.innerHTML = '';
             fetchPosts();
         } catch (error) {
             console.error(error);
@@ -380,43 +485,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Edit Post
-    editForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const id = editIdInput.value;
-        const title = editTitleInput.value.trim();
-        const content = editContentInput.value.trim();
-
-        if (!title || !content) {
-            alert('제목과 내용을 모두 입력해주세요.');
-            return;
-        }
-
-        try {
-            const response = await fetchWithAuth(`${postsApiUrl}/${id}`, {
-                method: 'PUT',
-                body: JSON.stringify({ title, content }),
-            });
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || '게시물 수정에 실패했습니다.');
-            }
-            hideEditForm();
-            fetchPosts();
-        } catch (error) {
-            console.error(error);
-            alert(error.message);
-        }
-    });
-
-    // Handle Clicks for Edit/Delete and Comment actions
     postsList.addEventListener('click', async (e) => {
         const target = e.target;
         const postLi = target.closest('li[data-id]');
         if (!postLi) return;
         const postId = postLi.dataset.id;
 
-        // Post Delete
         if (target.classList.contains('delete-btn')) {
             if (!confirm('정말로 이 게시물을 삭제하시겠습니까?')) return;
             try {
@@ -431,13 +505,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(error.message);
             }
         }
-        // Post Edit
         else if (target.classList.contains('edit-btn')) {
             const title = postLi.querySelector('h3').textContent;
             const content = postLi.querySelector('p').textContent;
             showEditForm(postId, title, content);
         }
-        // Comment Delete
         else if (target.classList.contains('comment-delete-btn')) {
             const commentLi = target.closest('li[data-comment-id]');
             if (!commentLi) return;
@@ -455,25 +527,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(error.message);
             }
         }
-        // Comment Edit
         else if (target.classList.contains('comment-edit-btn')) {
             const commentLi = target.closest('li[data-comment-id]');
             if (!commentLi) return;
             const viewDiv = commentLi.querySelector('.comment-view');
-            const editForm = commentLi.querySelector('.comment-edit-form');
+            const editFormEl = commentLi.querySelector('.comment-edit-form');
             viewDiv.style.display = 'none';
-            editForm.style.display = 'flex';
+            editFormEl.style.display = 'flex';
         }
-        // Comment Edit Cancel
         else if (target.classList.contains('comment-cancel-btn')) {
             const commentLi = target.closest('li[data-comment-id]');
             if (!commentLi) return;
             const viewDiv = commentLi.querySelector('.comment-view');
-            const editForm = commentLi.querySelector('.comment-edit-form');
+            const editFormEl = commentLi.querySelector('.comment-edit-form');
             viewDiv.style.display = 'flex';
-            editForm.style.display = 'none';
+            editFormEl.style.display = 'none';
         }
-        // Comment Edit Save
         else if (target.classList.contains('comment-save-btn')) {
             const commentLi = target.closest('li[data-comment-id]');
             if (!commentLi) return;
@@ -498,8 +567,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(error.message);
             }
         }
-        // Vote button click
         else if (target.classList.contains('like-btn') || target.classList.contains('dislike-btn')) {
+            if (!currentUser) { alert('로그인이 필요합니다.'); return; }
             const voteType = target.dataset.votetype;
             const targetType = target.dataset.target;
             let url;
@@ -510,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const commentId = target.dataset.commentId;
                 url = `${postsApiUrl}/${postId}/comments/${commentId}/vote`;
             } else {
-                return; // Should not happen
+                return;
             }
 
             try {
@@ -521,15 +590,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    // Handle specific error for voting on own post/comment if desired
                     throw new Error(errorData.message || '투표 처리에 실패했습니다.');
                 }
-
-                // The backend returns the updated post/comment. We can use this to
-                // update the UI selectively, but for simplicity and consistency with
-                // the rest of the app, we'll just refetch all posts.
                 fetchPosts();
-
             } catch (error) {
                 console.error(error);
                 alert(error.message);
@@ -537,7 +600,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Handle Comment Creation
     postsList.addEventListener('submit', async (e) => {
         e.preventDefault();
         const target = e.target;
@@ -568,6 +630,21 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error(error);
             alert(error.message);
+        }
+    });
+
+    attachmentInput.addEventListener('change', () => {
+        const file = attachmentInput.files[0];
+        imagePreviewContainer.innerHTML = '';
+
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                imagePreviewContainer.appendChild(img);
+            };
+            reader.readAsDataURL(file);
         }
     });
 
