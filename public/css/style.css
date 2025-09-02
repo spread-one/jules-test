@@ -144,6 +144,7 @@ button:hover {
     text-transform: none;
     letter-spacing: 0;
     text-decoration: none;
+    border-radius: 8px;
 }
 #logout-button:hover, #profile-button:hover {
     background: var(--error-color);
@@ -544,6 +545,30 @@ button:hover {
     margin-bottom: 40px;
     border-bottom: 1px solid var(--border-color);
     padding-bottom: 20px;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+#admin-button-container {
+    margin-right: auto;
+}
+
+#admin-button.button-like {
+    background: var(--primary-color);
+    color: var(--background-primary);
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s;
+}
+
+#admin-button.button-like:hover {
+    background: var(--primary-variant-color);
 }
 
 .logo {

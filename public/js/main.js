@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             authContainer.style.display = 'none';
             appContainer.style.display = 'block';
             const rankIcon = getRankIcon(currentUser.rank);
-            let welcomeHTML = `${rankIcon} ${escapeHTML(currentUser.name)}(${escapeHTML(currentUser.userId)})님, 환영합니다!`;
+            let welcomeHTML = `${rankIcon} ${escapeHTML(currentUser.name)}님, 환영합니다!`;
             if (currentUser.role === 'admin') {
                 welcomeHTML += ` <span class="admin-badge">(관리자)</span>`;
                 adminButton.style.display = 'inline-block';
