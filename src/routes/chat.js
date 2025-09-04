@@ -1,24 +1,26 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const { authMiddleware } = require('../middleware/authMiddleware');
+
+// Note: The authMiddleware has been removed from these page-serving routes.
+// The data loaded by the scripts on these pages is still protected by the
+// middleware in `chatApi.js`.
 
 /**
  * @route   GET /chat
  * @desc    Serves the main chat list page
- * @access  Private
+ * @access  Public (data loaded within is private)
  */
-router.get('/', authMiddleware, (req, res) => {
+router.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'html', 'chat.html'));
 });
 
 /**
  * @route   GET /chat/:id
  * @desc    Serves the specific chat room page
- * @access  Private
+ * @access  Public (data loaded within is private)
  */
-router.get('/:id', authMiddleware, (req, res) => {
-    // We can add logic here later to verify the user is part of this chat room
+router.get('/:id', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '..', 'public', 'html', 'chatroom.html'));
 });
 
