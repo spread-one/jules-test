@@ -4,6 +4,7 @@ const http = require('http');
 const { Server } = require("socket.io");
 const { chatRooms, users } = require('./dataStore');
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('./config');
 
 const app = express();
 const server = http.createServer(app);
@@ -57,7 +58,7 @@ io.use((socket, next) => {
         return next(new Error('Authentication error: Token not provided'));
     }
     try {
-        const decoded = jwt.verify(token, 'your_jwt_secret'); // Replace with your actual secret
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = users.find(u => u.id === decoded.id);
         if (!user) {
             return next(new Error('Authentication error: User not found'));
@@ -101,8 +102,11 @@ io.on('connection', (socket) => {
 
         room.messages.push(message);
 
-        // Broadcast the message to everyone in the room
-        io.to(chatRoomId).emit('message', message);
+        // Broadcast the message to everyone else in the room
+        socket.broadcast.to(chatRoomId).emit('message', { ...message, isMine: false });
+
+        // Send the message back to the sender with isMine: true
+        socket.emit('message', { ...message, isMine: true });
     });
 
     socket.on('disconnect', () => {

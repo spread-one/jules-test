@@ -65,7 +65,9 @@ router.get('/unread-count', authMiddleware, (req, res) => {
         if (!participant) return;
 
         const lastReadTime = new Date(participant.lastRead);
-        const unreadMessages = room.messages.filter(msg => new Date(msg.timestamp) > lastReadTime);
+        const unreadMessages = room.messages.filter(msg => {
+            return new Date(msg.timestamp) > lastReadTime && msg.user.id !== currentUserId;
+        });
         totalUnreadCount += unreadMessages.length;
     });
 

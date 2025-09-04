@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { users } = require('../dataStore');
-const JWT_SECRET = 'your_jwt_secret_key'; // Should be the same as in auth.js
+const { JWT_SECRET } = require('../config');
 
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers.authorization;

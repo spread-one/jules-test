@@ -5,8 +5,7 @@ const router = express.Router();
 const data = require('../dataStore');
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { getRank } = require('../utils/rank');
-
-const JWT_SECRET = 'your_jwt_secret_key'; // In a real app, use an environment variable
+const { JWT_SECRET } = require('../config');
 
 // User Registration (Signup)
 router.post('/signup', async (req, res) => {
