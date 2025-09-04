@@ -109,5 +109,28 @@ router.get('/rooms', authMiddleware, (req, res) => {
     res.json(roomsWithDetails);
 });
 
+/**
+ * @route   GET /api/chat/rooms/:roomId/messages
+ * @desc    Get all messages for a specific chat room
+ * @access  Private
+ */
+router.get('/rooms/:roomId/messages', authMiddleware, (req, res) => {
+    const { roomId } = req.params;
+    const currentUserId = req.user.id;
+
+    const room = dataStore.chatRooms.find(r => r.id === parseInt(roomId, 10));
+
+    if (!room) {
+        return res.status(404).json({ message: '채팅방을 찾을 수 없습니다.' });
+    }
+
+    const isParticipant = room.participants.some(p => p.userId === currentUserId);
+    if (!isParticipant) {
+        return res.status(403).json({ message: '이 채팅방에 접근할 권한이 없습니다.' });
+    }
+
+    res.json(room.messages);
+});
+
 
 module.exports = router;
