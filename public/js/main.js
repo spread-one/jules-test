@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
     // Views
     const authContainer = document.getElementById('auth-container');
+    const appMain = document.getElementById('app-main');
+    const boardSelectionView = document.getElementById('board-selection-view');
+    const boardDetailWrapper = document.getElementById('board-detail-wrapper');
     const appContainer = document.getElementById('app-container');
     const boardListView = document.getElementById('board-list-view');
     const boardDetailView = document.getElementById('board-detail-view');
@@ -23,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Common Elements
     const sidebar = document.querySelector('.sidebar');
+    const writePostFab = document.getElementById('write-post-fab');
     const userWelcomeMessage = document.getElementById('user-welcome-message');
     const logoutButton = document.getElementById('logout-button');
     const adminButton = document.getElementById('admin-button');
@@ -35,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginPasswordInput = document.getElementById('login-password');
 
     // Board List Elements
+    const fullBoardsList = document.getElementById('full-boards-list');
     const boardsList = document.getElementById('boards-list');
     const showCreateBoardFormButton = document.getElementById('show-create-board-form-button');
     const createBoardFormContainer = document.getElementById('create-board-form-container');
@@ -78,14 +83,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const usersTableBody = document.getElementById('users-table-body');
 
     // --- View Switching ---
+    function showBoardSelectionView() {
+        boardSelectionView.style.display = 'block';
+        boardDetailWrapper.style.display = 'none';
+        appContainer.style.display = 'none'; // Hide the container of other views
+    }
+
+    function showBoardDetailView() {
+        boardSelectionView.style.display = 'none';
+        boardDetailWrapper.style.display = 'flex'; // Use flex for sidebar layout
+        appContainer.style.display = 'block';
+        showAppView('board-detail-view'); // Show the specific posts view inside
+    }
+
     function showAppView(viewId) {
+        // This function now only toggles views *within* the app-container
         [boardDetailView, profileView, adminView].forEach(view => {
             if (view) view.style.display = 'none';
         });
+
         const viewToShow = document.getElementById(viewId);
         if (viewToShow) {
             viewToShow.style.display = 'block';
         }
+
+        // Hide the sidebar for profile and admin views
         if (viewId === 'profile-view' || viewId === 'admin-view') {
             sidebar.style.display = 'none';
         } else {
@@ -109,8 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error(data.message || '로그인에 실패했습니다.');
             token = data.token;
             localStorage.setItem('jwt_token', token);
-            await checkLoginStatus();
-            handleRouting(); // Show the default view without reloading
+            await checkLoginStatus(); // This will now trigger the full UI update and routing
         } catch (error) {
             console.error(error);
             alert(error.message);
@@ -135,26 +156,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     localStorage.removeItem('jwt_token');
                     token = null;
+                    currentUser = null;
                 }
             } catch (error) {
                 console.error('Session check failed:', error);
                 token = null;
+                currentUser = null;
             }
         }
-        updateUI();
+        await updateUI(); // Await the UI update to complete
     }
 
-    function updateUI() {
+    async function updateUI() {
         if (token && currentUser) {
             authContainer.style.display = 'none';
-            appContainer.style.display = 'block';
+            appMain.style.display = 'block'; // Show the main app container
             const rankIcon = getRankIcon(currentUser.rank);
             userWelcomeMessage.innerHTML = `${rankIcon} ${escapeHTML(currentUser.name)}님, 환영합니다!`;
             adminButton.style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
-            fetchBoards();
+            await fetchBoards(); // Await board fetching and rendering
         } else {
             authContainer.style.display = 'block';
-            appContainer.style.display = 'none';
+            appMain.style.display = 'none';
         }
     }
 
@@ -184,12 +207,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderBoards(boards) {
+        // Clear both lists
+        fullBoardsList.innerHTML = '';
         boardsList.innerHTML = '';
+
         boards.forEach(board => {
-            const li = document.createElement('li');
-            li.dataset.boardId = board.id;
-            li.innerHTML = `<span class="board-name">${escapeHTML(board.name)}</span>`;
-            boardsList.appendChild(li);
+            // Populate the full-width list
+            const fullLi = document.createElement('li');
+            fullLi.dataset.boardId = board.id;
+            fullLi.innerHTML = `
+                <div class="full-board-item">
+                    <h3>${escapeHTML(board.name)}</h3>
+                    <p>${escapeHTML(board.description || '설명이 없습니다.')}</p>
+                </div>`;
+            fullBoardsList.appendChild(fullLi);
+
+            // Populate the sidebar list
+            const sidebarLi = document.createElement('li');
+            sidebarLi.dataset.boardId = board.id;
+            sidebarLi.innerHTML = `<span class="board-name">${escapeHTML(board.name)}</span>`;
+            boardsList.appendChild(sidebarLi);
         });
     }
 
@@ -204,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let profileApiUrl = isMyProfile ? `${profileApiBaseUrl}/me` : `${profileApiBaseUrl}/${userId}`;
         if (isMyProfile && !currentUser) {
             alert('로그인이 필요합니다.');
-            showAppView(null);
+            showBoardSelectionView();
             return;
         }
         try {
@@ -262,7 +299,8 @@ document.addEventListener('DOMContentLoaded', () => {
     async function showAdminView() {
         if (!currentUser || currentUser.role !== 'admin') {
             alert('접근 권한이 없습니다.');
-            return showAppView(null);
+            showBoardSelectionView();
+            return;
         }
         showAppView('admin-view');
         await fetchAndRenderUsers();
@@ -515,7 +553,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Event Listeners ---
     loginForm.addEventListener('submit', handleLogin);
     logoutButton.addEventListener('click', handleLogout);
-    logoDiv.addEventListener('click', () => { window.history.pushState({}, '', '/'); showAppView(null); });
+    logoDiv.addEventListener('click', () => {
+        window.history.pushState({}, '', '/');
+        showBoardSelectionView();
+    });
+    writePostFab.addEventListener('click', () => {
+        if (currentBoardId) {
+            window.location.href = `/create-post?boardId=${currentBoardId}`;
+        } else {
+            alert('게시판을 먼저 선택해주세요.');
+        }
+    });
     adminButton.addEventListener('click', (e) => { e.preventDefault(); window.history.pushState({}, '', '/?view=admin'); showAdminView(); });
     profileButton.addEventListener('click', (e) => {
         e.preventDefault();
@@ -526,12 +574,39 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('로그인이 필요합니다.');
         }
     });
+
+    function selectBoard(boardId) {
+        currentBoardId = boardId;
+
+        // Highlight the selected board in the sidebar
+        const allBoardItems = boardsList.querySelectorAll('li');
+        allBoardItems.forEach(item => {
+            if (item.dataset.boardId == currentBoardId) {
+                item.classList.add('active');
+            } else {
+                item.classList.remove('active');
+            }
+        });
+
+        showBoardDetailView();
+        fetchPosts();
+    }
+
+    fullBoardsList.addEventListener('click', (e) => {
+        const boardLi = e.target.closest('li[data-board-id]');
+        if (boardLi) {
+            const boardId = parseInt(boardLi.dataset.boardId, 10);
+            selectBoard(boardId);
+        }
+    });
+
     boardsList.addEventListener('click', (e) => {
         const boardLi = e.target.closest('li[data-board-id]');
         if (boardLi) {
-            currentBoardId = parseInt(boardLi.dataset.boardId, 10);
-            showAppView('board-detail-view');
-            fetchPosts();
+            const boardId = parseInt(boardLi.dataset.boardId, 10);
+            if (boardId !== currentBoardId) {
+                selectBoard(boardId);
+            }
         }
     });
 
@@ -616,14 +691,38 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- URL Routing and Initial Load ---
     function handleRouting() {
         const params = new URLSearchParams(window.location.search);
-        if (params.get('view') === 'admin') showAdminView();
-        else if (params.has('userId')) showProfileView(params.get('userId'));
-        else showAppView(null); // Default view
+        if (params.has('boardId')) {
+            const boardId = parseInt(params.get('boardId'), 10);
+            selectBoard(boardId);
+        } else if (params.get('view') === 'admin') {
+            showAdminView();
+        } else if (params.has('userId')) {
+            showProfileView(params.get('userId'));
+        } else {
+            showBoardSelectionView(); // Default view
+        }
     }
 
     async function initialLoad() {
-        await checkLoginStatus();
-        handleRouting();
+        await checkLoginStatus(); // This now ensures boards are rendered before proceeding
+
+        const nextActionRaw = localStorage.getItem('nextAction');
+        if (nextActionRaw) {
+            localStorage.removeItem('nextAction'); // Consume the action
+            try {
+                const nextAction = JSON.parse(nextActionRaw);
+                if (nextAction.view === 'board' && nextAction.boardId) {
+                    selectBoard(nextAction.boardId);
+                    // Also update the URL for consistency, but use replaceState to not break the back button
+                    history.replaceState(null, '', `/?boardId=${nextAction.boardId}`);
+                    return; // Stop further routing
+                }
+            } catch (e) {
+                console.error("Could not parse nextAction from localStorage", e);
+            }
+        }
+
+        handleRouting(); // Handle routing for direct navigation or bookmarks
         window.onpopstate = handleRouting;
     }
 

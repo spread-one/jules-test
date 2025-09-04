@@ -32,6 +32,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'public', 'html', 'index.html'));
 });
 
+// Serve create-post.html for the /create-post route
+app.get('/create-post', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'html', 'create-post.html'));
+});
+
 
 app.listen(port, () => {
     console.log(`서버가 http://localhost:${port} 에서 실행 중입니다.`);

@@ -591,12 +591,15 @@ button:hover {
 }
 
 /* New Layout Styles */
-.main-layout {
+#board-detail-wrapper {
     display: flex;
     gap: 30px;
+    align-items: flex-start;
 }
 
 .sidebar {
+    position: sticky;
+    top: 20px;
     width: 250px;
     flex-shrink: 0;
     background-color: var(--background-secondary);
@@ -604,6 +607,94 @@ button:hover {
     border-radius: 12px;
 }
 
+.main-layout {
+    flex-grow: 1;
+}
+
 .content {
     flex-grow: 1;
+}
+
+/* Full-width Board Selection List */
+#full-boards-list {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+#full-boards-list li {
+    background: var(--background-primary);
+    border: 1px solid var(--border-color);
+    padding: 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+#full-boards-list li:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(47,107,255,0.15);
+}
+
+#full-boards-list h3 {
+    margin: 0 0 10px 0;
+    color: var(--primary-color);
+    font-size: 1.5em;
+}
+
+#full-boards-list p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 1em;
+    line-height: 1.5;
+}
+
+#boards-list li.active {
+    background-color: var(--primary-color);
+    color: var(--background-primary);
+}
+
+#boards-list li.active .board-name {
+    color: var(--background-primary);
+}
+
+.fab-container {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+.button-like {
+    background: var(--primary-color);
+    color: var(--background-primary);
+    padding: 12px 20px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.3s, transform 0.2s;
+    display: inline-block;
+}
+
+.button-like:hover {
+    background: var(--primary-variant-color);
+    transform: translateY(-2px);
+}
+
+.button-like-cancel {
+    padding: 15px;
+    background: var(--error-color);
+    color: var(--background-primary);
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: transform 0.2s, box-shadow 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+    text-align: center;
 }

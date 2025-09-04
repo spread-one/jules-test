@@ -52,9 +52,6 @@ router.post('/signup', async (req, res) => {
 
         data.users.push(newUser);
 
-        console.log('New user registered:', newUser);
-        console.log('All users:', data.users);
-
 
         res.status(201).json({ message: '회원가입이 성공적으로 완료되었습니다.' });
 
@@ -119,12 +116,8 @@ router.post('/login', async (req, res) => {
 // This route is used by the frontend to verify a token from localStorage
 router.get('/me', authMiddleware, (req, res) => {
     // The user payload from the token is in req.user.
-    // We should find the latest user info from our data store.
-    const user = data.users.find(u => u.id === req.user.id);
-    if (!user) {
-        // This could happen if the user was deleted after the token was issued.
-        return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-    }
+    // The middleware has already validated the user exists.
+    const user = req.user;
 
     // Don't send the password hash
     const { password, ...userWithoutPassword } = user;
