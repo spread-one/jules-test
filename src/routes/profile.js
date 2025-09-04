@@ -100,6 +100,7 @@ router.get('/:userId', (req, res) => {
     });
 
     res.json({
+        id: user.id,
         name: user.name, // Return the user's name
         posts: userPosts,
         comments: userComments
