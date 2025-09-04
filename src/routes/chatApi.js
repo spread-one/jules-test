@@ -86,20 +86,26 @@ router.get('/rooms', authMiddleware, (req, res) => {
         room.participants.some(p => p.userId === currentUserId)
     );
 
-    const roomsWithDetails = userChatRooms.map(room => {
-        const otherParticipant = room.participants.find(p => p.userId !== currentUserId);
-        const otherUser = users.find(u => u.id === otherParticipant.userId);
-        const lastMessage = room.messages[room.messages.length - 1];
+    const roomsWithDetails = userChatRooms
+        .map(room => {
+            const otherParticipant = room.participants.find(p => p.userId !== currentUserId);
+            if (!otherParticipant) return null; // Gracefully handle rooms with no other participant
 
-        return {
-            id: room.id,
-            otherUser: {
-                id: otherUser.id,
-                name: otherUser.name,
-            },
-            lastMessage: lastMessage || null
-        };
-    });
+            const otherUser = users.find(u => u.id === otherParticipant.userId);
+            if (!otherUser) return null; // Gracefully handle if the other user is not found
+
+            const lastMessage = room.messages[room.messages.length - 1];
+
+            return {
+                id: room.id,
+                otherUser: {
+                    id: otherUser.id,
+                    name: otherUser.name,
+                },
+                lastMessage: lastMessage || null,
+            };
+        })
+        .filter(room => room !== null); // Filter out any null entries from gracefully handled errors
 
     res.json(roomsWithDetails);
 });

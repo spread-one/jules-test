@@ -102,11 +102,16 @@ io.on('connection', (socket) => {
 
         room.messages.push(message);
 
-        // Broadcast the message to everyone else in the room
-        socket.broadcast.to(chatRoomId).emit('message', { ...message, isMine: false });
-
-        // Send the message back to the sender with isMine: true
-        socket.emit('message', { ...message, isMine: true });
+        // Explicitly broadcast to each socket in the room with the correct `isMine` flag
+        io.in(chatRoomId).allSockets().then(sockets => {
+            sockets.forEach(socketId => {
+                const targetSocket = io.sockets.sockets.get(socketId);
+                if (targetSocket) {
+                    const isMine = targetSocket.id === socket.id;
+                    targetSocket.emit('message', { ...message, isMine });
+                }
+            });
+        });
     });
 
     socket.on('disconnect', () => {
