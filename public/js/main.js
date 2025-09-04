@@ -54,12 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const boardDescriptionDetail = document.getElementById('board-description-detail');
     const editDescBtnContainer = document.getElementById('edit-desc-btn-container');
     const postsList = document.getElementById('posts-list');
-    const createFormContainer = document.getElementById('create-form-container');
-    const createForm = document.getElementById('create-post-form');
-    const createTitleInput = document.getElementById('create-title');
-    const createContentInput = document.getElementById('create-content');
-    const attachmentInput = document.getElementById('create-attachment');
-    const imagePreviewContainer = document.getElementById('image-preview');
     const editFormContainer = document.getElementById('edit-form-container');
     const editForm = document.getElementById('edit-post-form');
     const editIdInput = document.getElementById('edit-post-id');
@@ -542,12 +536,10 @@ document.addEventListener('DOMContentLoaded', () => {
         editIdInput.value = id;
         editTitleInput.value = title;
         editContentInput.value = content;
-        createFormContainer.style.display = 'none';
         editFormContainer.style.display = 'block';
     }
     function hideEditForm() {
         editFormContainer.style.display = 'none';
-        createFormContainer.style.display = 'block';
     }
 
     // --- Event Listeners ---
@@ -632,40 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
     editProfileForm.addEventListener('submit', handleProfileEdit);
     usersTableBody.addEventListener('click', handleAdminTableClick);
     cancelEditBtn.addEventListener('click', hideEditForm);
-    createForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const title = createTitleInput.value.trim();
-        const content = createContentInput.value.trim();
-        const attachmentFile = attachmentInput.files[0];
-        if (!title || !content) return alert('제목과 내용을 모두 입력해주세요.');
-        const formData = new FormData();
-        formData.append('title', title);
-        formData.append('content', content);
-        formData.append('boardId', currentBoardId);
-        if (attachmentFile) formData.append('attachment', attachmentFile);
-        try {
-            const response = await fetchWithAuth(postsApiUrl, { method: 'POST', body: formData });
-            if (!response.ok) throw new Error((await response.json()).message || '게시물 생성에 실패했습니다.');
-            createTitleInput.value = '';
-            createContentInput.value = '';
-            attachmentInput.value = '';
-            imagePreviewContainer.innerHTML = '';
-            fetchPosts();
-        } catch (error) { console.error(error); alert(error.message); }
-    });
-    attachmentInput.addEventListener('change', () => {
-        const file = attachmentInput.files[0];
-        imagePreviewContainer.innerHTML = '';
-        if (file && file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const img = document.createElement('img');
-                img.src = e.target.result;
-                imagePreviewContainer.appendChild(img);
-            };
-            reader.readAsDataURL(file);
-        }
-    });
     showCreateBoardFormButton.addEventListener('click', () => createBoardFormContainer.style.display = 'block');
     cancelCreateBoardButton.addEventListener('click', () => createBoardFormContainer.style.display = 'none');
     createBoardForm.addEventListener('submit', handleCreateBoard);
