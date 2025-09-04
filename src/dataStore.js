@@ -13,12 +13,17 @@ let nextCommentId = 1;
 let nextUserId = 2; // 관리자 계정이 있으므로 2부터 시작
 let nextBoardId = 4; // 기본 게시판 3개가 있으므로 4부터 시작
 
+let chatRooms = [];
+let nextChatRoomId = 1;
+
 module.exports = {
     posts,
     users,
     boards,
+    chatRooms,
     nextId,
     nextCommentId,
     nextUserId,
-    nextBoardId
+    nextBoardId,
+    nextChatRoomId
 };

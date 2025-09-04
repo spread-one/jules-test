@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const logoutButton = document.getElementById('logout-button');
     const adminButton = document.getElementById('admin-button');
     const profileButton = document.getElementById('profile-button');
+    const chatButton = document.getElementById('chat-button');
+    const unreadCountSpan = document.querySelector('#chat-button .unread-count');
     const logoDiv = document.querySelector('.logo');
 
     // Auth Elements
@@ -73,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const myPostsList = document.getElementById('my-posts-list');
     const myCommentsList = document.getElementById('my-comments-list');
     const editProfileButton = document.getElementById('edit-profile-button');
+    const startChatButton = document.getElementById('start-chat-button');
     const editProfileModal = document.getElementById('edit-profile-modal');
     const closeButton = document.querySelector('#profile-view .close-button');
     const editProfileForm = document.getElementById('edit-profile-form');
@@ -173,10 +176,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const rankIcon = getRankIcon(currentUser.rank);
             userWelcomeMessage.innerHTML = `${rankIcon} ${escapeHTML(currentUser.name)}님, 환영합니다!`;
             adminButton.style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
+            chatButton.style.display = 'inline-block';
+
             await fetchBoards(); // Await board fetching and rendering
+
+            // Start polling for unread messages
+            fetchUnreadCount();
+            setInterval(fetchUnreadCount, 15000); // Poll every 15 seconds
         } else {
             authContainer.style.display = 'block';
             appMain.style.display = 'none';
+            chatButton.style.display = 'none';
+        }
+    }
+
+    async function fetchUnreadCount() {
+        if (!currentUser) return;
+        try {
+            const response = await fetchWithAuth('/api/chat/unread-count');
+            if (!response.ok) return; // Fail silently
+            const data = await response.json();
+            if (data.unreadCount > 0) {
+                unreadCountSpan.textContent = data.unreadCount;
+                unreadCountSpan.style.display = 'inline';
+            } else {
+                unreadCountSpan.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Failed to fetch unread count:', error);
         }
     }
 
@@ -290,9 +317,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderProfileData(data, isMyProfile) {
         profileTitle.textContent = isMyProfile ? '내 프로필' : `${escapeHTML(data.name || '사용자')}의 프로필`;
+
         editProfileButton.style.display = isMyProfile ? 'block' : 'none';
+        startChatButton.style.display = !isMyProfile ? 'block' : 'none';
+
+        if (!isMyProfile) {
+            startChatButton.dataset.userId = data.id;
+        }
+
         myPostsList.innerHTML = data.posts.length ? data.posts.map(p => `<li><h3>${escapeHTML(p.title)}</h3><p>${escapeHTML(p.content)}</p><span class="post-date">작성일: ${formatDate(p.createdAt)}</span></li>`).join('') : '<li>작성한 글이 없습니다.</li>';
         myCommentsList.innerHTML = data.comments.length ? data.comments.map(c => `<li><p>${escapeHTML(c.content)}</p><span class="comment-meta">원문: ${escapeHTML(c.postTitle)}</span><span class="comment-date">작성일: ${formatDate(c.createdAt)}</span></li>`).join('') : '<li>작성한 댓글이 없습니다.</li>';
+    }
+
+    async function startChat(otherUserId) {
+        if (!otherUserId) return;
+        try {
+            const response = await fetchWithAuth(`/api/chat/start`, {
+                method: 'POST',
+                body: JSON.stringify({ userId: otherUserId }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message || '채팅 시작에 실패했습니다.');
+
+            // Redirect to the chat room
+            window.location.href = `/chat/${data.chatRoomId}`;
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
     }
 
     async function handleProfileEdit(e) {
@@ -693,6 +745,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     postsList.addEventListener('submit', handleCommentSubmit);
     editProfileButton.addEventListener('click', () => editProfileModal.style.display = 'block');
+    startChatButton.addEventListener('click', (e) => {
+        const userId = e.currentTarget.dataset.userId;
+        startChat(userId);
+    });
     closeButton.addEventListener('click', () => editProfileModal.style.display = 'none');
     window.addEventListener('click', (e) => { if (e.target == editProfileModal) editProfileModal.style.display = 'none'; });
     editProfileForm.addEventListener('submit', handleProfileEdit);

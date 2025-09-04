@@ -21,6 +21,7 @@
                 <div id="user-info" class="user-info">
                     <span id="user-welcome-message"></span>
                     <a href="#" id="profile-button">내 프로필 보기</a>
+                    <a href="/chat" id="chat-button" class="button-like" style="display: none;">채팅 <span class="unread-count" style="display: none;">0</span></a>
                     <button id="logout-button">로그아웃</button>
                 </div>
             </div>
@@ -124,8 +125,13 @@
 
                 <!-- Profile View -->
                 <div id="profile-view" style="display: none;">
-                    <h1 id="profile-title">프로필</h1>
-                    <button id="edit-profile-button">내 정보 수정하기</button>
+                    <div class="profile-header">
+                        <h1 id="profile-title">프로필</h1>
+                        <div id="profile-actions">
+                            <button id="start-chat-button" class="button-like" style="display: none;">채팅하기</button>
+                            <button id="edit-profile-button" style="display: none;">내 정보 수정하기</button>
+                        </div>
+                    </div>
                     <div id="profile-content">
                         <h2>내가 쓴 글</h2>
                         <ul id="my-posts-list"></ul>

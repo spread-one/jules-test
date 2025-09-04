@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅 - Clinamen</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/chat.css">
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div class="logo">
+                <a href="/"><img src="/logo.png" alt="Clinamen Logo"></a>
+                <a href="/"><h1>Clinamen</h1></a>
+            </div>
+        </header>
+
+        <main class="chat-container">
+            <h2>채팅 목록</h2>
+            <div id="chat-list">
+                <!-- Example Chat Item -->
+                <div class="chat-item">
+                    <div class="chat-item-user">
+                        <strong>상대방이름</strong>
+                    </div>
+                    <div class="chat-item-message">
+                        <p>이것은 마지막으로 받은 메시지입니다.</p>
+                    </div>
+                    <div class="chat-item-timestamp">
+                        <span>오후 2:30</span>
+                    </div>
+                </div>
+                <!-- Chat list will be dynamically populated here -->
+            </div>
+        </main>
+    </div>
+    <script src="/js/chat.js"></script>
+</body>
+</html>

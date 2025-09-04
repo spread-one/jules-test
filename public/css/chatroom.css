@@ -1,0 +1,107 @@
+/* Chat Room Header */
+.chat-room-header {
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.chat-room-header .back-button {
+    font-size: 1.5em;
+    text-decoration: none;
+    color: #333;
+    margin-right: 15px;
+}
+
+.chat-room-header h2 {
+    margin: 0;
+    font-size: 1.2em;
+}
+
+/* Chat Room Container */
+.chat-room-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 150px); /* Adjust based on header height */
+}
+
+/* Message List */
+#message-list {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+    border-bottom: 1px solid #ddd;
+}
+
+.message {
+    margin-bottom: 15px;
+    max-width: 70%;
+    display: flex;
+    flex-direction: column;
+}
+
+.message p {
+    padding: 10px 15px;
+    border-radius: 18px;
+    margin: 0;
+}
+
+.message .timestamp {
+    font-size: 0.8em;
+    color: #999;
+    margin-top: 5px;
+}
+
+/* Received Messages */
+.message.received {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+
+.message.received p {
+    background-color: #f1f0f0;
+}
+
+/* Sent Messages */
+.message.sent {
+    align-self: flex-end;
+    align-items: flex-end;
+}
+
+.message.sent p {
+    background-color: #007bff;
+    color: white;
+}
+
+.message.sent .timestamp {
+    align-self: flex-end;
+}
+
+
+/* Message Input Area */
+.message-input-area {
+    display: flex;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+}
+
+#message-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    margin-right: 10px;
+}
+
+.message-input-area button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.message-input-area button:hover {
+    background-color: #0056b3;
+}

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채팅방 - Clinamen</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/chatroom.css">
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div class="logo">
+                <a href="/"><img src="/logo.png" alt="Clinamen Logo"></a>
+                <a href="/"><h1>Clinamen</h1></a>
+            </div>
+            <div class="chat-room-header">
+                <a href="/chat" class="back-button">←</a>
+                <h2 id="chat-room-title">상대방 이름</h2>
+            </div>
+        </header>
+
+        <main class="chat-room-container">
+            <div id="message-list">
+                <!-- Example messages -->
+                <div class="message received">
+                    <p>안녕하세요!</p>
+                    <span class="timestamp">오전 10:00</span>
+                </div>
+                <div class="message sent">
+                    <p>네, 안녕하세요. 반갑습니다.</p>
+                    <span class="timestamp">오전 10:01</span>
+                </div>
+                <!-- Messages will be dynamically populated here -->
+            </div>
+            <form id="message-form" class="message-input-area">
+                <input type="text" id="message-input" placeholder="메시지를 입력하세요..." autocomplete="off" required>
+                <button type="submit">전송</button>
+            </form>
+        </main>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/chatroom.js"></script>
+</body>
+</html>
