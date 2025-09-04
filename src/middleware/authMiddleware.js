@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { users } = require('../dataStore');
 const JWT_SECRET = 'your_jwt_secret_key'; // Should be the same as in auth.js
 
 const authMiddleware = (req, res, next) => {
@@ -12,7 +13,14 @@ const authMiddleware = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        req.user = decoded; // Add user payload to request object
+
+        // Find the user in the dataStore to ensure they still exist
+        const user = users.find(u => u.id === decoded.id);
+        if (!user) {
+            return res.status(401).json({ message: '인증 실패: 사용자를 찾을 수 없습니다.' });
+        }
+
+        req.user = user; // Attach the actual, live user object
         next(); // Proceed to the next middleware or route handler
     } catch (error) {
         if (error.name === 'TokenExpiredError') {

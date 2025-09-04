@@ -1,7 +1,7 @@
 // In-memory data store
 let posts = [];
 let users = [
-    { id: 1, userId: '1', password: '1', name: '관리자', role: 'admin' }
+    { id: 1, userId: '1', password: '1', name: '관리자', role: 'admin', score: 0 }
 ];
 let boards = [
     { id: 1, name: '레스터 시티 게시판', createdBy: 1, description: '레스터 시티 팬들을 위한 공간' },
