@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 /**
  * @route   GET /chat
