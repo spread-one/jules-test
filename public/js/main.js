@@ -60,6 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const editContentInput = document.getElementById('edit-content');
     const cancelEditBtn = document.getElementById('cancel-edit');
 
+    // Create Post Elements (in modal)
+    const createPostFormContainer = document.getElementById('create-form-container');
+    const createPostForm = document.getElementById('create-post-form');
+    const createPostTitleInput = document.getElementById('create-title');
+    const createPostContentInput = document.getElementById('create-content');
+    const createPostAttachmentInput = document.getElementById('create-attachment');
+    const cancelCreatePostButton = document.getElementById('cancel-create-post');
+
     // Profile View Elements
     const profileTitle = document.getElementById('profile-title');
     const myPostsList = document.getElementById('my-posts-list');
@@ -221,6 +229,36 @@ document.addEventListener('DOMContentLoaded', () => {
             sidebarLi.innerHTML = `<span class="board-name">${escapeHTML(board.name)}</span>`;
             boardsList.appendChild(sidebarLi);
         });
+    }
+
+    async function handleCreateBoard(e) {
+        e.preventDefault();
+        const name = createBoardNameInput.value.trim();
+        const description = createBoardDescriptionInput.value.trim();
+
+        if (!name) {
+            return alert('게시판 이름을 입력해주세요.');
+        }
+
+        try {
+            const response = await fetchWithAuth(boardsApiUrl, {
+                method: 'POST',
+                body: JSON.stringify({ name, description }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '게시판 생성에 실패했습니다.');
+            }
+
+            alert('게시판이 성공적으로 생성되었습니다.');
+            createBoardForm.reset();
+            createBoardFormContainer.style.display = 'none';
+            await fetchBoards(); // Refresh the boards list
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
     }
 
     // --- Profile Logic ---
@@ -434,6 +472,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    async function handleCreatePost(e) {
+        e.preventDefault();
+        const title = createPostTitleInput.value.trim();
+        const content = createPostContentInput.value.trim();
+        const attachmentFile = createPostAttachmentInput.files[0];
+
+        if (!title || !content) {
+            return alert('제목과 내용을 모두 입력해주세요.');
+        }
+
+        const formData = new FormData();
+        formData.append('title', title);
+        formData.append('content', content);
+        formData.append('boardId', currentBoardId);
+        if (attachmentFile) {
+            formData.append('attachment', attachmentFile);
+        }
+
+        try {
+            const response = await fetchWithAuth(postsApiUrl, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || '게시물 생성에 실패했습니다.');
+            }
+
+            alert('게시물이 성공적으로 등록되었습니다.');
+            createPostForm.reset();
+            createPostFormContainer.style.display = 'none';
+            await fetchPosts(); // Refresh the posts list
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    }
+
     async function handlePostAndCommentActions(e) {
         const target = e.target;
         const postLi = target.closest('li[data-id]');
@@ -548,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     writePostFab.addEventListener('click', () => {
         if (currentBoardId) {
-            window.location.href = `/create-post?boardId=${currentBoardId}`;
+            createPostFormContainer.style.display = 'block';
         } else {
             alert('게시판을 먼저 선택해주세요.');
         }
@@ -621,9 +698,14 @@ document.addEventListener('DOMContentLoaded', () => {
     editProfileForm.addEventListener('submit', handleProfileEdit);
     usersTableBody.addEventListener('click', handleAdminTableClick);
     cancelEditBtn.addEventListener('click', hideEditForm);
+    cancelCreatePostButton.addEventListener('click', () => {
+        createPostFormContainer.style.display = 'none';
+        createPostForm.reset();
+    });
     showCreateBoardFormButton.addEventListener('click', () => createBoardFormContainer.style.display = 'block');
     cancelCreateBoardButton.addEventListener('click', () => createBoardFormContainer.style.display = 'none');
     createBoardForm.addEventListener('submit', handleCreateBoard);
+    createPostForm.addEventListener('submit', handleCreatePost);
     boardDetailHeader.addEventListener('click', (e) => {
         const board = boardsData.find(b => b.id === currentBoardId);
         if (!board) return;
