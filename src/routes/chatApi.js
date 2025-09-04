@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/authMiddleware');
-const { chatRooms, users } = require('../dataStore');
-let { nextChatRoomId } = require('../dataStore');
+const dataStore = require('../dataStore');
 
 /**
  * @route   POST /api/chat/start
@@ -22,7 +21,7 @@ router.post('/start', authMiddleware, (req, res) => {
     }
 
     // Find if a chat room already exists between the two users
-    let existingRoom = chatRooms.find(room => {
+    let existingRoom = dataStore.chatRooms.find(room => {
         const participantIds = room.participants.map(p => p.userId);
         return participantIds.includes(currentUserId) && participantIds.includes(parseInt(otherUserId, 10));
     });
@@ -34,7 +33,7 @@ router.post('/start', authMiddleware, (req, res) => {
     // Create a new chat room if one doesn't exist
     const creationTime = new Date();
     const newRoom = {
-        id: nextChatRoomId++,
+        id: dataStore.nextChatRoomId++,
         participants: [
             { userId: currentUserId, lastRead: creationTime },
             { userId: parseInt(otherUserId, 10), lastRead: creationTime }
@@ -42,7 +41,7 @@ router.post('/start', authMiddleware, (req, res) => {
         messages: [],
         createdAt: creationTime,
     };
-    chatRooms.push(newRoom);
+    dataStore.chatRooms.push(newRoom);
 
     res.status(201).json({ chatRoomId: newRoom.id });
 });
@@ -56,7 +55,7 @@ router.get('/unread-count', authMiddleware, (req, res) => {
     const currentUserId = req.user.id;
     let totalUnreadCount = 0;
 
-    const userChatRooms = chatRooms.filter(room =>
+    const userChatRooms = dataStore.chatRooms.filter(room =>
         room.participants.some(p => p.userId === currentUserId)
     );
 
@@ -82,7 +81,7 @@ router.get('/unread-count', authMiddleware, (req, res) => {
 router.get('/rooms', authMiddleware, (req, res) => {
     const currentUserId = req.user.id;
 
-    const userChatRooms = chatRooms.filter(room =>
+    const userChatRooms = dataStore.chatRooms.filter(room =>
         room.participants.some(p => p.userId === currentUserId)
     );
 
@@ -91,7 +90,7 @@ router.get('/rooms', authMiddleware, (req, res) => {
             const otherParticipant = room.participants.find(p => p.userId !== currentUserId);
             if (!otherParticipant) return null; // Gracefully handle rooms with no other participant
 
-            const otherUser = users.find(u => u.id === otherParticipant.userId);
+            const otherUser = dataStore.users.find(u => u.id === otherParticipant.userId);
             if (!otherUser) return null; // Gracefully handle if the other user is not found
 
             const lastMessage = room.messages[room.messages.length - 1];
