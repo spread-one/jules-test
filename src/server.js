@@ -89,9 +89,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('chatMessage', ({ chatRoomId, text }) => {
+        console.log(`[DEBUG] chatMessage received from user ${socket.user.name} for room ${chatRoomId}`);
         const room = chatRooms.find(r => r.id == chatRoomId);
         if (!room || !room.participants.some(p => p.userId === socket.user.id)) {
-            return console.log('Message from unauthorized user ignored.');
+            console.log(`[DEBUG] Message from unauthorized user ignored. User: ${socket.user.name}, Room: ${chatRoomId}`);
+            return;
         }
 
         const message = {
@@ -104,6 +106,7 @@ io.on('connection', (socket) => {
 
         // Explicitly broadcast to each socket in the room with the correct `isMine` flag
         io.in(chatRoomId).allSockets().then(sockets => {
+            console.log(`[DEBUG] Broadcasting message to sockets in room ${chatRoomId}:`, sockets);
             sockets.forEach(socketId => {
                 const targetSocket = io.sockets.sockets.get(socketId);
                 if (targetSocket) {

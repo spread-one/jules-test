@@ -42,6 +42,9 @@ router.post('/start', authMiddleware, (req, res) => {
         createdAt: creationTime,
     };
     dataStore.chatRooms.push(newRoom);
+    console.log('[DEBUG] New chat room created:', newRoom);
+    console.log(`[DEBUG] Total chat rooms now: ${dataStore.chatRooms.length}`);
+
 
     res.status(201).json({ chatRoomId: newRoom.id });
 });
@@ -80,10 +83,13 @@ router.get('/unread-count', authMiddleware, (req, res) => {
  */
 router.get('/rooms', authMiddleware, (req, res) => {
     const currentUserId = req.user.id;
+    console.log(`[DEBUG] /api/chat/rooms called by user ID: ${currentUserId}`);
+    console.log('[DEBUG] Current chatRooms in dataStore:', JSON.stringify(dataStore.chatRooms, null, 2));
 
     const userChatRooms = dataStore.chatRooms.filter(room =>
         room.participants.some(p => p.userId === currentUserId)
     );
+    console.log(`[DEBUG] Found ${userChatRooms.length} rooms for this user.`);
 
     const roomsWithDetails = userChatRooms
         .map(room => {
