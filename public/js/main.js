@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- State ---
-    let token = null;
     let currentUser = null;
     let currentBoardId = 1;
     let boardsData = [];
@@ -123,8 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.message || '로그인에 실패했습니다.');
-            token = data.token;
-            localStorage.setItem('jwt_token', token);
+            localStorage.setItem('jwt_token', data.token);
             await checkLoginStatus(); // This will now trigger the full UI update and routing
         } catch (error) {
             console.error(error);
@@ -133,7 +131,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleLogout() {
-        token = null;
         currentUser = null;
         localStorage.removeItem('jwt_token');
         window.location.href = '/';
@@ -142,27 +139,27 @@ document.addEventListener('DOMContentLoaded', () => {
     async function checkLoginStatus() {
         const storedToken = localStorage.getItem('jwt_token');
         if (storedToken) {
-            token = storedToken;
             try {
                 const response = await fetchWithAuth(`${authApiUrl}/me`);
                 if (response.ok) {
                     currentUser = await response.json();
                 } else {
+                    // Token is invalid or expired
                     localStorage.removeItem('jwt_token');
-                    token = null;
                     currentUser = null;
                 }
             } catch (error) {
                 console.error('Session check failed:', error);
-                token = null;
                 currentUser = null;
             }
+        } else {
+            currentUser = null;
         }
         await updateUI(); // Await the UI update to complete
     }
 
     async function updateUI() {
-        if (token && currentUser) {
+        if (currentUser) {
             authContainer.style.display = 'none';
             appMain.style.display = 'block'; // Show the main app container
             const rankIcon = getRankIcon(currentUser.rank);
@@ -178,11 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- API Helper ---
     function fetchWithAuth(url, options = {}) {
         const headers = { ...options.headers };
+        const localToken = localStorage.getItem('jwt_token');
+
         if (!options.body || !(options.body instanceof FormData)) {
             headers['Content-Type'] = 'application/json';
         }
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+        if (localToken) {
+            headers['Authorization'] = `Bearer ${localToken}`;
         }
         return fetch(url, { ...options, headers });
     }
@@ -277,11 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
             editProfileForm.reset();
             if (data.token) {
                 localStorage.setItem('jwt_token', data.token);
-                token = data.token;
             }
-            const meResponse = await fetchWithAuth(`${authApiUrl}/me`);
-            currentUser = await meResponse.json();
-            updateUI();
+            // Re-fetch user info to update the UI with new name/rank
+            await checkLoginStatus();
             showProfileView(currentUser.id);
         } catch (error) {
             console.error(error);

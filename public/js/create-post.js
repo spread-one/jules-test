@@ -6,7 +6,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const imagePreviewContainer = document.getElementById('image-preview');
 
     const postsApiUrl = '/api/posts';
-    const token = localStorage.getItem('jwt_token');
 
     // Get boardId from URL query parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,14 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    if (!token) {
-        alert('로그인이 필요합니다.');
-        window.location.href = '/';
-        return;
-    }
-
     function fetchWithAuth(url, options = {}) {
         const headers = { ...options.headers };
+        const token = localStorage.getItem('jwt_token');
         if (!options.body || !(options.body instanceof FormData)) {
             headers['Content-Type'] = 'application/json';
         }
